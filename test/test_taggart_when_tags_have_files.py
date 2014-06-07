@@ -8,6 +8,7 @@ class Taggart_BaseCase(unittest.TestCase):
     def setUp(self):
         # Arrange
         reload(taggart)
+        taggart.logger.setLevel('ERROR')
         # Act
         taggart.tag('file_1.txt', 'Tag A')
         taggart.tag('file_2.txt', 'Tag B')
@@ -134,6 +135,7 @@ class load_TestCase(load_save_BaseCase):
     def test_load(self):
         # Arrange
         reload(taggart)
+        taggart.logger.setLevel('ERROR')
         self.exists_mock.return_value = True
         self.file_mock.readlines.return_value = [
             'Tag A<==>file_1.txt\n',
@@ -150,6 +152,7 @@ class load_TestCase(load_save_BaseCase):
     def test_load_overwrite_function_works(self):
         # Arrange
         reload(taggart)
+        taggart.logger.setLevel('ERROR')
         self.exists_mock.return_value = True
         self.file_mock.readlines.return_value = ['Tag Z<==>file_26.txt\n']
         expect = {
@@ -177,6 +180,7 @@ class load_TestCase(load_save_BaseCase):
     def test_load_allows_existence_assertion(self):
         # Arrange
         reload(taggart)
+        taggart.logger.setLevel('ERROR')
         self.exists_mock.side_effect = lambda x: (
             False if x == 'nonexistant.txt' else True)
         self.file_mock.readlines.return_value = [

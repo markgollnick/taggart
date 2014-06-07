@@ -8,6 +8,7 @@ class Taggart_BaseCase(unittest.TestCase):
     def setUp(self):
         # Arrange
         reload(taggart)
+        taggart.logger.setLevel('ERROR')
         taggart.FORMAT = taggart.FILE_TO_TAG
         # Act
         taggart.tag('file_1.txt', 'Tag A')
