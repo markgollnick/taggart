@@ -99,8 +99,7 @@ def rename_tag(old_tag, new_tag):
         if not old_tag in THE_LIST:
             return
 
-        THE_LIST[new_tag] = THE_LIST[old_tag]
-        del THE_LIST[old_tag]
+        THE_LIST[new_tag] = THE_LIST.pop(old_tag)
 
     else:
         for file_name, tag_names in THE_LIST.items():
@@ -156,6 +155,7 @@ get_file_tags = get_tags_by_file
 
 
 def get_tags():
+    """Self-explanatory."""
     if FORMAT == TAG_TO_FILE:
         return sorted(THE_LIST.keys())
     else:
@@ -166,6 +166,7 @@ def get_tags():
 
 
 def get_files():
+    """Self-explanatory."""
     if FORMAT == TAG_TO_FILE:
         all_files = []
         for files in THE_LIST.values():
