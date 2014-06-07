@@ -1,3 +1,6 @@
-*~
 *.orig
 *.py[a-z]
+*~
+MANIFEST*
+build/*
+dist/*
