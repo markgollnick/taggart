@@ -64,10 +64,10 @@ class untag_TestCase(Taggart_BaseCase):
         self.assertEqual(expect, taggart.THE_LIST)
 
 
-class load_save_BaseCase(Taggart_BaseCase):
+class saved_TestCase(Taggart_BaseCase):
 
     def setUp(self):
-        super(load_save_BaseCase, self).setUp()
+        super(saved_TestCase, self).setUp()
         self.exists_mock = patch.object(taggart.os.path, 'exists').start()
         self.file_mock = Mock()
         real_open = __builtins__['open']
@@ -76,19 +76,16 @@ class load_save_BaseCase(Taggart_BaseCase):
             self.file_mock if x == 'mytags.txt'
             else real_open(x, *args, **kwargs))
 
-
-class saved_TestCase(load_save_BaseCase):
-
     def _assert_save_success(self):
         self.exists_mock.assert_called_once_with('mytags.txt')
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
-            call('file_1.txt<==>Tag A\n'),
-            call('file_2.txt<==>Tag B\n'
-                 'file_2.txt<==>Tag C\n'),
-            call('file_3.txt<==>Tag B\n'
-                 'file_3.txt<==>Tag C\n'
-                 'file_3.txt<==>Tag D\n')
+            call('Tag A<==>file_1.txt\n'),
+            call('Tag B<==>file_2.txt\n'
+                 'Tag C<==>file_2.txt\n'),
+            call('Tag B<==>file_3.txt\n'
+                 'Tag C<==>file_3.txt\n'
+                 'Tag D<==>file_3.txt\n')
         ])
         self.file_mock.close.assert_called_once_with()
 
@@ -109,83 +106,6 @@ class saved_TestCase(load_save_BaseCase):
         taggart.save('mytags.txt', overwrite=True)
         # Assert
         self._assert_save_success()
-
-
-class load_TestCase(load_save_BaseCase):
-
-    def setUp(self):
-        super(load_TestCase, self).setUp()
-
-    def _assert_load_success(self):
-        self.exists_mock.assert_called_once_with('mytags.txt')
-        self.open_mock.assert_called_once_with('mytags.txt', 'r')
-        self.file_mock.readlines.assert_called_once_with()
-        self.file_mock.close.assert_called_once_with()
-        expect = {
-            'file_1.txt': ['Tag A'],
-            'file_2.txt': ['Tag B', 'Tag C'],
-            'file_3.txt': ['Tag B', 'Tag C', 'Tag D']
-        }
-        self.assertEqual(expect, taggart.THE_LIST)
-
-    def test_load(self):
-        # Arrange
-        reload(taggart)
-        taggart.FORMAT = taggart.FILE_TO_TAG
-        self.exists_mock.return_value = True
-        self.file_mock.readlines.return_value = [
-            'file_1.txt<==>Tag A\n',
-            'file_2.txt<==>Tag B\n',
-            'file_2.txt<==>Tag C\n',
-            'file_3.txt<==>Tag B\n',
-            'file_3.txt<==>Tag C\n',
-            'file_3.txt<==>Tag D\n']
-        # Act
-        taggart.load('mytags.txt')
-        # Assert
-        self._assert_load_success()
-
-    def test_load_overwrite_function_works(self):
-        # Arrange
-        reload(taggart)
-        taggart.FORMAT = taggart.FILE_TO_TAG
-        self.exists_mock.return_value = True
-        self.file_mock.readlines.return_value = ['file_26.txt<==>Tag Z\n']
-        expect = {
-            'file_1.txt': ['Tag A'],
-            'file_26.txt': ['Tag Z']
-        }
-        taggart.tag('file_1.txt', 'Tag A', assert_exists=False)
-        # Act
-        taggart.load('mytags.txt')
-        # Assert
-        self.assertEqual(expect, taggart.THE_LIST)
-        # Arrange
-        expect.pop('file_1.txt')
-        # Act
-        taggart.load('mytags.txt', overwrite=True)
-        # Assert
-        self.assertEqual(expect, taggart.THE_LIST)
-
-    def test_load_fails_on_file_not_found(self):
-        # Arrange
-        self.exists_mock.return_value = False
-        # Act/Assert
-        self.assertRaises(IOError, taggart.load, 'mytags.txt')
-
-    def test_load_allows_existence_assertion(self):
-        # Arrange
-        reload(taggart)
-        taggart.FORMAT = taggart.FILE_TO_TAG
-        self.exists_mock.side_effect = lambda x: (
-            False if x == 'nonexistant.txt' else True)
-        self.file_mock.readlines.return_value = [
-            'file_24.txt<==>Tag X\n',
-            'nonexistant.txt<==>Tag Y\n',
-            'file_26.txt<==>Tag Z\n']
-        # Act/Assert
-        self.assertRaises(
-            IOError, taggart.load, 'mytags.txt', assert_exists=True)
 
 
 class rename_tag_TestCase(Taggart_BaseCase):

@@ -62,9 +62,17 @@ def save(output_file, overwrite=False):
 
     f = open(output_file, 'w')
 
-    for x, y in sorted(THE_LIST.items()):
-        lines = [x + SEPARATOR + z for z in sorted(y)]
-        f.write(os.linesep.join(lines) + os.linesep)
+    if FORMAT == TAG_TO_FILE:
+        for tag_name, file_names in sorted(THE_LIST.items()):
+            lines = [tag_name + SEPARATOR + file_name
+                     for file_name in sorted(file_names)]
+            f.write(os.linesep.join(lines) + os.linesep)
+    else:
+        for file_name, tag_names in sorted(THE_LIST.items()):
+            lines = [tag_name + SEPARATOR + file_name
+                     for tag_name in sorted(tag_names)]
+            f.write(os.linesep.join(lines) + os.linesep)
+
     f.close()
 
 
@@ -80,13 +88,7 @@ def load(input_file, overwrite=False, assert_exists=False):
     f = open(input_file, 'r')
     for line in f.readlines():
         relationship = line.rstrip(os.linesep)
-        x, y = relationship.split(SEPARATOR, 1)  # :-(
-
-        if FORMAT == TAG_TO_FILE:
-            tag_name, file_name = x, y
-        else:
-            file_name, tag_name = x, y
-
+        tag_name, file_name = relationship.split(SEPARATOR, 1)  # :-(
         tag(file_name, tag_name, assert_exists)
     f.close()
 
