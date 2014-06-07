@@ -93,7 +93,6 @@ def save(output_file, overwrite=False):
 
 def load(input_file, overwrite=False, assert_exists=False):
     """It was cute when I didn't know you."""
-
     if not os.path.exists(input_file):
         err = 'File "%s" not found!' % input_file
         logger.warn(err)

@@ -1,3 +1,4 @@
+import os
 import taggart
 import unittest
 from mock import Mock, call, patch
@@ -81,12 +82,12 @@ class saved_TestCase(Taggart_BaseCase):
         self.exists_mock.assert_called_once_with('mytags.txt')
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
-            call('Tag A<==>file_1.txt\n'),
-            call('Tag B<==>file_2.txt\n'
-                 'Tag C<==>file_2.txt\n'),
-            call('Tag B<==>file_3.txt\n'
-                 'Tag C<==>file_3.txt\n'
-                 'Tag D<==>file_3.txt\n')
+            call('Tag A<==>file_1.txt' + os.linesep),
+            call('Tag B<==>file_2.txt' + os.linesep +
+                 'Tag C<==>file_2.txt' + os.linesep),
+            call('Tag B<==>file_3.txt' + os.linesep +
+                 'Tag C<==>file_3.txt' + os.linesep +
+                 'Tag D<==>file_3.txt' + os.linesep)
         ])
         self.file_mock.close.assert_called_once_with()
 
