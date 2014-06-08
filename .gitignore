@@ -1,6 +1,8 @@
 *.orig
 *.py[a-z]
 *~
-MANIFEST*
+.coverage
+build-user.properties
 build/*
 dist/*
+MANIFEST*

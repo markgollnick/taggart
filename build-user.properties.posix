@@ -1,0 +1,4 @@
+nose.executable=nosetests
+pip.executable=pip
+python.executable=python
+virtualenv.executable=virtualenv
