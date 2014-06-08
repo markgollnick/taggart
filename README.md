@@ -48,6 +48,16 @@ Advanced queries:
     EE230/hw07.pdf
 
 
+Testing
+-------
+
+Taggart is built with Travis CI and is WOMM Certified™.
+
+Master branch: [![Build Status](https://travis-ci.org/markgollnick/taggart.svg?branch=master)](https://travis-ci.org/markgollnick/taggart)
+
+![WOMM Certified™](http://content.screencast.com/users/markgollnick/folders/Jing/media/19ea7b38-4a94-450c-9190-3e5115ebe1c4/womm.png)
+
+
 License
 -------
 
