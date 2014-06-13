@@ -1,7 +1,15 @@
-language: python
+language: "python"
 python:
   - "2.7"
+
 # command to install dependencies
-install: "pip install -r requirements_dev.txt"
+install:
+  - "pip install -r requirements_dev.txt"
+  - "pip install coveralls"
+
 # command to run tests
 script: "nosetests . --with-cover --cover-package=taggart --cover-erase --cover-min-percentage=100"
+
+# command to upload coverage data to coveralls.io
+after_success:
+  - "coveralls"
