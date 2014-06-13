@@ -1,6 +1,8 @@
 ﻿Taggart
 =======
 
+![Taggart](http://content.screencast.com/users/markgollnick/folders/Jing/media/31dd044b-f409-439d-947b-c9baa0499800/taggart.png)
+
 Taggart is a simple file-tagging aid.
 
 
