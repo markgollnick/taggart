@@ -1,2 +1,2 @@
-include CHANGES.txt
-include README.md
+include *.txt
+include *.md

@@ -3,7 +3,7 @@
 
 ![Taggart](http://content.screencast.com/users/markgollnick/folders/Jing/media/31dd044b-f409-439d-947b-c9baa0499800/taggart.png)
 
-Taggart is a simple file-tagging aid.
+Taggart is a simple yet robust file-tagging aid.
 
 
 Usage
@@ -11,21 +11,41 @@ Usage
 
 Easy installation:
 
-    $ pip install https://github.com/markgollnick/taggart/releases/download/v1.0.0/taggart-1.0.0.tar.gz
+    $ pip install https://github.com/markgollnick/taggart/releases/download/v1.1.0/taggart-1.1.0.tar.gz
 
 Simple interface:
 
-    $ python -i
     >>> import taggart
     >>> taggart.load('tags.txt')
-    >>> taggart.tag('EE230/hw07.md', 'EE 230')
-    >>> taggart.tag('EE230/hw07.md', 'Markdown')
-    >>> taggart.tag('EE230/hw07.pdf', 'EE 230')
-    >>> taggart.tag('EE230/hw07.pdf', 'Rendered')
-    >>> taggart.save('tags.txt', overwrite=True)
-    >>> exit()
 
-Human readable:
+Tag files one-at-a-time:
+
+    >>> taggart.tag('EE230/hw07.md', 'Markdown')
+    >>> taggart.tag('EE230/hw07.pdf', 'Rendered')
+
+…or tag multiple files at once:
+
+    >>> taggart.tags(['EE230/hw07.md', 'EE230/hw07.pdf'], 'EE 230')
+
+…or apply multiple tags at once:
+
+    >>> taggart.tags('EE201/final.md', ['EE 201', 'Markdown'])
+    >>> taggart.tags('EE201/final.pdf', ['EE 201', 'Rendered'])
+
+…or both:
+
+    >>> taggart.tags(['EE201/final.md', 'EE201/final.pdf'], ['EE 201', 'Final'])
+
+Save the results:
+
+    >>> taggart.save('tags.txt')
+
+…using a variety of formats:
+
+    >>> taggart.save('tags.json')
+    >>> taggart.save('tags.yaml')
+
+…such as plain text (easiest to query with awk or grep):
 
     $ cat tags.txt
     EE 201<==>EE201/final.md
@@ -39,19 +59,88 @@ Human readable:
     Rendered<==>EE201/final.pdf
     Rendered<==>EE230/hw07.pdf
 
-Parsable output:
+…or JSON (easiest to parse):
 
-    $ grep "EE 230" tags.txt
-    EE 230<==>EE230/hw07.md
-    EE 230<==>EE230/hw07.pdf
+    $ cat tags.json | json_pp
+    {
+       "EE 230" : [
+          "EE230/hw07.md",
+          "EE230/hw07.pdf"
+       ],
+       "EE 201" : [
+          "EE201/final.md",
+          "EE201/final.pdf"
+       ],
+       "Rendered" : [
+          "EE230/hw07.pdf",
+          "EE201/final.pdf"
+       ],
+       "Markdown" : [
+          "EE230/hw07.md",
+          "EE201/final.md"
+       ],
+       "Final" : [
+          "EE201/final.md",
+          "EE201/final.pdf"
+       ]
+    }
 
-Advanced example:
+…or YAML (easiest to read):
 
-    $ awk '/EE 2[0-9]+/ { split($0, a, "<==>"); print a[2] }' tags.txt
-    EE201/final.md
-    EE201/final.pdf
-    EE230/hw07.md
-    EE230/hw07.pdf
+    $ cat tags.yaml
+    EE 201:
+    - EE201/final.md
+    - EE201/final.pdf
+    EE 230:
+    - EE230/hw07.md
+    - EE230/hw07.pdf
+    Final:
+    - EE201/final.md
+    - EE201/final.pdf
+    Markdown:
+    - EE201/final.md
+    - EE230/hw07.md
+    Rendered:
+    - EE201/final.pdf
+    - EE230/hw07.pdf
+
+If you get to tagging many, many, MANY files, depending on your application, it
+may be more beneficial for you (in computational terms) to reference tags by
+their files (aka "file-to-tag mapping") rather than files by their tags (aka
+"tag-to-file mapping", and also the default setting). Taggart makes this easy:
+
+    >>> import taggart
+    >>> taggart.MAPPING = taggart.FILE_TO_TAG
+    >>> taggart.load('tags.txt', overwrite=True)
+    >>> taggart.save('new_tags.yaml')
+    >>> exit()
+
+    $ cat new_tags.yaml
+    EE201/final.md:
+    - EE 201
+    - Final
+    - Markdown
+    EE201/final.pdf:
+    - EE 201
+    - Final
+    - Rendered
+    EE230/hw07.md:
+    - EE 230
+    - Markdown
+    EE230/hw07.pdf:
+    - EE 230
+    - Rendered
+
+Note that when using the alternate mapping, the plain text format is unaffected
+(on each line, tags will always appear first, files second) so you can easily
+use that as a transitionary format. However, the JSON and YAML formats *will*
+swap their keys and their values, as is appropriate. For more information on
+which of these two mapping styles you should use, see the documentation in
+`taggart.py`, or set taggart's logger to `INFO` while your application is using
+taggart, and see if you encounter any messages about slow computations.
+
+For most folks, however, the default setting of tag-to-file mapping is probably
+the ideal option.
 
 
 Testing
