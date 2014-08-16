@@ -12,7 +12,7 @@ class Taggart_BaseCase(unittest.TestCase):
         # Arrange
         reload(taggart)
         taggart.logger.setLevel('ERROR')
-        taggart.FORMAT = taggart.FILE_TO_TAG
+        taggart.MAPPING = taggart.FILE_TO_TAG
         # Act
         taggart.tag('file_1.txt', 'Tag A')
         taggart.tag('file_2.txt', 'Tag B')

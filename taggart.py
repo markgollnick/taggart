@@ -32,7 +32,7 @@ SEPARATOR = '<==>'
 # graph relationships such as file-tagging.
 TAG_TO_FILE = 'tag-->file'
 FILE_TO_TAG = 'file-->tag'
-FORMAT = TAG_TO_FILE
+MAPPING = TAG_TO_FILE
 
 
 def tag(file_name, tag_name, assert_exists=False):
@@ -42,7 +42,7 @@ def tag(file_name, tag_name, assert_exists=False):
         logger.error(err)
         raise IOError(err)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         if tag_name in THE_LIST:
             if file_name not in THE_LIST[tag_name]:
                 THE_LIST[tag_name].append(file_name)
@@ -59,7 +59,7 @@ def tag(file_name, tag_name, assert_exists=False):
 
 def tags(file_names, tag_names, assert_exists=False):
     """Tag multiple files with multiple tags."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
     if isinstance(file_names, basestring):
         file_names = [file_names]
@@ -79,7 +79,7 @@ def tags(file_names, tag_names, assert_exists=False):
 
 def untag(file_name, tag_name):
     """I'm not the Commander."""
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         if tag_name not in THE_LIST:
             return
 
@@ -100,7 +100,7 @@ def untag(file_name, tag_name):
 
 def untags(file_names, tag_names):
     """Remove multiple tags from multiple files."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
     if isinstance(file_names, basestring):
         file_names = [file_names]
@@ -120,7 +120,7 @@ def untags(file_names, tag_names):
 
 def save(output_file, overwrite=True):
     """The mists of this planet are filling my head with such thoughts..."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
     if not overwrite and os.path.exists(output_file):
         err = 'File "%s" already exists!' % output_file
@@ -129,7 +129,7 @@ def save(output_file, overwrite=True):
 
     f = open(output_file, 'w')
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         for tag_name, file_names in sorted(THE_LIST.items()):
             lines = [tag_name + SEPARATOR + file_name
                      for file_name in sorted(file_names)]
@@ -164,9 +164,9 @@ def load(input_file, overwrite=False, assert_exists=False):
 
 def rename_tag(old_tag, new_tag):
     """And now, back after 18 years..."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         if old_tag not in THE_LIST:
             return
 
@@ -174,7 +174,7 @@ def rename_tag(old_tag, new_tag):
 
     else:
         logger.info('Tag renaming operations may be slow for %s maps...' % (
-            FORMAT))
+            MAPPING))
         for file_name, tag_names in THE_LIST.items():
             if old_tag in tag_names:
                 tag(file_name, new_tag)
@@ -183,11 +183,11 @@ def rename_tag(old_tag, new_tag):
 
 def rename_file(old_file, new_file):
     """The ship was a model as big as this, a very clever deception indeed."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         logger.info('File rename operations may be slow for %s maps...' % (
-            FORMAT))
+            MAPPING))
         for tag_name, file_names in THE_LIST.items():
             if old_file in file_names:
                 tag(new_file, tag_name)
@@ -203,12 +203,12 @@ def rename_file(old_file, new_file):
 
 def get_files_by_tag(tag_name):
     """Find them."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         return sorted(THE_LIST.get(tag_name)) or []
     else:
-        logger.info('Queries by tag may be slow for %s maps...' % FORMAT)
+        logger.info('Queries by tag may be slow for %s maps...' % MAPPING)
         file_names = []
         for file_name, tag_names in THE_LIST.items():
             if tag_name in tag_names:
@@ -221,10 +221,10 @@ get_tag_files = get_files_by_tag
 
 def get_tags_by_file(file_name):
     """FIIIIND THEEEEM."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
-        logger.info('Queries by file may be slow for %s maps...' % FORMAT)
+    if MAPPING == TAG_TO_FILE:
+        logger.info('Queries by file may be slow for %s maps...' % MAPPING)
         tag_names = []
         for tag_name, file_names in THE_LIST.items():
             if file_name in file_names:
@@ -239,13 +239,13 @@ get_file_tags = get_tags_by_file
 
 def get_tags():
     """Self-explanatory."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         return sorted(THE_LIST.keys())
     else:
         logger.info('Exhaustive tag obtainment may be slow for %s maps...' % (
-            FORMAT))
+            MAPPING))
         all_tags = []
         for tags in THE_LIST.values():
             all_tags.extend(tags)
@@ -254,11 +254,11 @@ def get_tags():
 
 def get_files():
     """Self-explanatory."""
-    logger.debug('Using %s memory mapping.' % FORMAT)
+    logger.debug('Using %s memory mapping.' % MAPPING)
 
-    if FORMAT == TAG_TO_FILE:
+    if MAPPING == TAG_TO_FILE:
         logger.info('Exhaustive file obtainment may be slow for %s maps...' % (
-            FORMAT))
+            MAPPING))
         all_files = []
         for files in THE_LIST.values():
             all_files.extend(files)
