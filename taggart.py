@@ -46,6 +46,9 @@ FORMAT = 'txt'
 # Separator for plain text format
 SEPARATOR = '<==>'
 
+# Return a file extension
+getext = lambda x: x[::-1].split('.', 1)[0][::-1]
+
 
 def tag(file_name, tag_name, assert_exists=False):
     """
@@ -169,7 +172,7 @@ def untags(file_names, tag_names):
                 untag(file_name, tag_name)
 
 
-def save(output_file, overwrite=True, fmt=FORMAT):
+def save(output_file, overwrite=True, fmt=None):
     """
     Save the list of tags to a file.
 
@@ -187,6 +190,8 @@ def save(output_file, overwrite=True, fmt=FORMAT):
         err = 'File "%s" already exists!' % output_file
         logger.error(err)
         raise IOError(err)
+
+    fmt = getext(output_file).lower() if not fmt else FORMAT
 
     f = open(output_file, 'w')
 
@@ -215,7 +220,7 @@ def save(output_file, overwrite=True, fmt=FORMAT):
     f.close()
 
 
-def load(input_file, overwrite=False, assert_exists=False, fmt=FORMAT):
+def load(input_file, overwrite=False, assert_exists=False, fmt=None):
     """
     Load a list of tags from a file.
 
@@ -238,6 +243,8 @@ def load(input_file, overwrite=False, assert_exists=False, fmt=FORMAT):
     if overwrite:
         global THE_LIST
         THE_LIST = {}
+
+    fmt = getext(input_file).lower() if not fmt else FORMAT
 
     f = open(input_file, 'r')
 

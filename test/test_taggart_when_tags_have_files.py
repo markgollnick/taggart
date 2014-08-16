@@ -196,7 +196,7 @@ class saved_TestCase(load_save_BaseCase):
 
     def test_save_json_case(self):
         # Arrange/Act
-        taggart.save('mytags.json', fmt='json')
+        taggart.save('mytags.json')
         # Assert
         self._assert_save_json_success()
 
@@ -208,7 +208,7 @@ class saved_TestCase(load_save_BaseCase):
 
     def test_save_yaml_case(self):
         # Arrange/Act
-        taggart.save('mytags.yaml', fmt='yaml')
+        taggart.save('mytags.yaml')
         # Assert
         self._assert_save_yaml_success()
 
@@ -269,7 +269,7 @@ class load_TestCase(load_save_BaseCase):
             ' "Tag C": ["file_2.txt", "file_3.txt"],'
             ' "Tag D": ["file_3.txt"]}')
         # Act
-        taggart.load('mytags.json', fmt='json')
+        taggart.load('mytags.json')
         # Assert
         self._assert_load_success('json')
 
@@ -284,7 +284,7 @@ class load_TestCase(load_save_BaseCase):
             'Tag C:\n- file_2.txt\n- file_3.txt\n'
             'Tag D:\n- file_3.txt')
         # Act
-        taggart.load('mytags.yaml', fmt='yaml')
+        taggart.load('mytags.yaml')
         # Assert
         self._assert_load_success('yaml')
 

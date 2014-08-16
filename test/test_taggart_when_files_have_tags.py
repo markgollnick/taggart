@@ -113,7 +113,7 @@ class saved_TestCase(Taggart_BaseCase):
 
     def test_save_json_case(self):
         # Arrange/Act
-        taggart.save('mytags.json', fmt='json')
+        taggart.save('mytags.json')
         # Assert
         self._assert_save_json_success()
 
@@ -125,7 +125,7 @@ class saved_TestCase(Taggart_BaseCase):
 
     def test_save_yaml_case(self):
         # Arrange/Act
-        taggart.save('mytags.yaml', fmt='yaml')
+        taggart.save('mytags.yaml')
         # Assert
         self._assert_save_yaml_success()
 
