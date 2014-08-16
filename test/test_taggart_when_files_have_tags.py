@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 
 from mock import Mock, call, patch
@@ -11,7 +12,7 @@ class Taggart_BaseCase(unittest.TestCase):
     def setUp(self):
         # Arrange
         reload(taggart)
-        taggart.logger.setLevel('ERROR')
+        taggart.logger.setLevel('CRITICAL')
         taggart.MAPPING = taggart.FILE_TO_TAG
         # Act
         taggart.tag('file_1.txt', 'Tag A')
@@ -77,10 +78,18 @@ class saved_TestCase(Taggart_BaseCase):
         real_open = __builtins__['open']
         self.open_mock = patch('__builtin__.open').start()
         self.open_mock.side_effect = lambda x, *args, **kwargs: (
-            self.file_mock if x == 'mytags.txt'
+            self.file_mock if 'mytags' in x
             else real_open(x, *args, **kwargs))
 
-    def _assert_save_success(self):
+    def _assert_save_json_success(self):
+        self.open_mock.assert_called_once_with('mytags.json', 'w')
+        self.file_mock.write.assert_called_once_with(
+            '{"file_1.txt": ["Tag A"],'
+            ' "file_2.txt": ["Tag B", "Tag C"],'
+            ' "file_3.txt": ["Tag B", "Tag C", "Tag D"]}')
+        self.file_mock.close.assert_called_once_with()
+
+    def _assert_save_txt_success(self):
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
             call('Tag A<==>file_1.txt' + os.linesep),
@@ -92,13 +101,33 @@ class saved_TestCase(Taggart_BaseCase):
         ])
         self.file_mock.close.assert_called_once_with()
 
-    def test_save_case(self):
-        # Arrange
-        self.exists_mock.return_value = False
-        # Act
+    def _assert_save_yaml_success(self):
+        self.open_mock.assert_called_once_with('mytags.yaml', 'w')
+        self.file_mock.write.assert_has_calls([
+            call('file_1.txt:{n}- Tag A{n}'.format(n=os.linesep)),
+            call('file_2.txt:{n}- Tag B{n}- Tag C{n}'.format(n=os.linesep)),
+            call('file_3.txt:{n}- Tag B{n}- Tag C{n}- Tag D{n}'.format(
+                n=os.linesep))
+        ])
+        self.file_mock.close.assert_called_once_with()
+
+    def test_save_json_case(self):
+        # Arrange/Act
+        taggart.save('mytags.json', fmt='json')
+        # Assert
+        self._assert_save_json_success()
+
+    def test_save_txt_case(self):
+        # Arrange/Act
         taggart.save('mytags.txt')
         # Assert
-        self._assert_save_success()
+        self._assert_save_txt_success()
+
+    def test_save_yaml_case(self):
+        # Arrange/Act
+        taggart.save('mytags.yaml', fmt='yaml')
+        # Assert
+        self._assert_save_yaml_success()
 
     def test_save_allows_overwrite_by_default(self):
         # Arrange
@@ -109,7 +138,7 @@ class saved_TestCase(Taggart_BaseCase):
         taggart.save('mytags.txt')
         # Assert
         self.exists_mock.assert_called_once_with('mytags.txt')
-        self._assert_save_success()
+        self._assert_save_txt_success()
 
 
 class rename_tag_TestCase(Taggart_BaseCase):
@@ -190,3 +219,32 @@ class get_files_TestCase(Taggart_BaseCase):
         self.assertEqual(
             ['file_1.txt', 'file_2.txt', 'file_3.txt'],
             taggart.get_files())
+
+
+class ImportErrorTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.addCleanup(patch.stopall)
+        self.real_import = __import__
+
+        def import_error(name, *args, **kwargs):
+            if name == 'yaml':
+                raise ImportError
+            return self.real_import(name, *args, **kwargs)
+
+        self.import_patch = patch(
+            target='__builtin__.__import__', new=import_error)
+
+        self.import_mock = self.import_patch.start()
+
+    def tearDown(self):
+        patch.stopall()
+        reload(taggart)
+
+    def test_yaml_import_errors_out_gracefully(self):
+        self.assertTrue(hasattr(taggart, 'yaml'))
+        del sys.modules['yaml']
+        del taggart.yaml
+        self.assertFalse(hasattr(taggart, 'yaml'))
+        reload(taggart)
+        self.assertFalse(hasattr(taggart, 'yaml'))

@@ -1,5 +1,6 @@
 """Introducing Taggart: The simple file tagger."""
 
+import json
 import logging
 import os
 
@@ -13,11 +14,15 @@ del logger.handlers[:]
 logger.addHandler(__handler)
 logger.setLevel(logging.WARNING if not __DEBUG else logging.DEBUG)
 
+try:
+    import yaml
+except ImportError as e:
+    logger.warn("PyYAML is not loaded. You will be able to save tag files in "
+                "YAML format, but you will not be able to load them.")
+    pass
+
 # Store the list of files and tags in memory
 THE_LIST = {}
-
-# Separator for plain text format
-SEPARATOR = '<==>'
 
 # MEMORY MAPPING SETTING:
 #   This allows you to use either "tags have files" or "files have tags" design
@@ -33,6 +38,13 @@ SEPARATOR = '<==>'
 TAG_TO_FILE = 'tag-->file'
 FILE_TO_TAG = 'file-->tag'
 MAPPING = TAG_TO_FILE
+
+# OUTPUT FORMAT SETTING:
+# Available options are 'json', 'txt', and 'yaml'.
+FORMAT = 'txt'
+
+# Separator for plain text format
+SEPARATOR = '<==>'
 
 
 def tag(file_name, tag_name, assert_exists=False):
@@ -157,7 +169,7 @@ def untags(file_names, tag_names):
                 untag(file_name, tag_name)
 
 
-def save(output_file, overwrite=True):
+def save(output_file, overwrite=True, fmt=FORMAT):
     """
     Save the list of tags to a file.
 
@@ -165,6 +177,8 @@ def save(output_file, overwrite=True):
     @type output_file: str
     @param overwrite: If True, overwrite the file if it exists
     @type overwrite: bool
+    @param fmt: The format to save the output in: json, txt, or yaml
+    @type fmt: str: 'json', 'txt', or 'yaml'
     @raise IOError: When overwrite is False and output_file already exists
     """
     logger.debug('Using %s memory mapping.' % MAPPING)
@@ -176,21 +190,32 @@ def save(output_file, overwrite=True):
 
     f = open(output_file, 'w')
 
-    if MAPPING == TAG_TO_FILE:
-        for tag_name, file_names in sorted(THE_LIST.items()):
-            lines = [tag_name + SEPARATOR + file_name
-                     for file_name in sorted(file_names)]
-            f.write(os.linesep.join(lines) + os.linesep)
+    if fmt == 'json':
+        f.write(json.dumps(THE_LIST, sort_keys=True))
+
+    elif fmt == 'yaml':
+        for x, y in sorted(THE_LIST.items()):
+            lines = x + ':' + os.linesep
+            lines += ('- ' + '{n}- '.join(sorted(y))).format(n=os.linesep)
+            f.write(lines + os.linesep)
+
     else:
-        for file_name, tag_names in sorted(THE_LIST.items()):
-            lines = [tag_name + SEPARATOR + file_name
-                     for tag_name in sorted(tag_names)]
-            f.write(os.linesep.join(lines) + os.linesep)
+        if MAPPING == TAG_TO_FILE:
+            for tag_name, file_names in sorted(THE_LIST.items()):
+                lines = [tag_name + SEPARATOR + file_name
+                         for file_name in sorted(file_names)]
+                f.write(os.linesep.join(lines) + os.linesep)
+
+        else:
+            for file_name, tag_names in sorted(THE_LIST.items()):
+                lines = [tag_name + SEPARATOR + file_name
+                         for tag_name in sorted(tag_names)]
+                f.write(os.linesep.join(lines) + os.linesep)
 
     f.close()
 
 
-def load(input_file, overwrite=False, assert_exists=False):
+def load(input_file, overwrite=False, assert_exists=False, fmt=FORMAT):
     """
     Load a list of tags from a file.
 
@@ -201,6 +226,8 @@ def load(input_file, overwrite=False, assert_exists=False):
     @type overwrite: bool
     @param assert_exists: If True, don't tag nonexistant files
     @type assert_exists: bool
+    @param fmt: The format to save the output in: json, txt, or yaml
+    @type fmt: str: 'json', 'txt', or 'yaml'
     @raise IOError: When input_file does not exist
     """
     if not os.path.exists(input_file):
@@ -213,10 +240,25 @@ def load(input_file, overwrite=False, assert_exists=False):
         THE_LIST = {}
 
     f = open(input_file, 'r')
-    for line in f.readlines():
-        relationship = line.rstrip(os.linesep)
-        tag_name, file_name = relationship.split(SEPARATOR, 1)  # :-(
-        tag(file_name, tag_name, assert_exists)
+
+    if fmt == 'json':
+        THE_LIST.update({
+            str(k): [
+                str(s) for s in v] for k, v in json.loads(f.read()).items()
+        })
+
+    elif fmt == 'yaml':
+        THE_LIST.update({
+            str(k): [
+                str(s) for s in v] for k, v in yaml.load(f.read()).items()
+        })
+
+    else:
+        for line in f.readlines():
+            relationship = line.rstrip(os.linesep)
+            tag_name, file_name = relationship.split(SEPARATOR, 1)  # :-(
+            tag(file_name, tag_name, assert_exists)
+
     f.close()
 
 

@@ -11,7 +11,7 @@ class Taggart_BaseCase(unittest.TestCase):
     def setUp(self):
         # Arrange
         reload(taggart)
-        taggart.logger.setLevel('ERROR')
+        taggart.logger.setLevel('CRITICAL')
         # Act
         taggart.tag('file_1.txt', 'Tag A')
         taggart.tag('file_2.txt', 'Tag B')
@@ -154,13 +154,23 @@ class load_save_BaseCase(Taggart_BaseCase):
         real_open = __builtins__['open']
         self.open_mock = patch('__builtin__.open').start()
         self.open_mock.side_effect = lambda x, *args, **kwargs: (
-            self.file_mock if x == 'mytags.txt'
+            self.file_mock if 'mytags' in x
             else real_open(x, *args, **kwargs))
 
 
 class saved_TestCase(load_save_BaseCase):
 
-    def _assert_save_success(self):
+    def _assert_save_json_success(self):
+        self.open_mock.assert_called_once_with('mytags.json', 'w')
+        self.file_mock.write.assert_called_once_with(
+            '{"Tag A": ["file_1.txt"],'
+            ' "Tag B": ["file_2.txt", "file_3.txt"],'
+            ' "Tag C": ["file_2.txt", "file_3.txt"],'
+            ' "Tag D": ["file_3.txt"]}'
+        )
+        self.file_mock.close.assert_called_once_with()
+
+    def _assert_save_txt_success(self):
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
             call('Tag A<==>file_1.txt' + os.linesep),
@@ -172,13 +182,35 @@ class saved_TestCase(load_save_BaseCase):
         ])
         self.file_mock.close.assert_called_once_with()
 
-    def test_save_case(self):
-        # Arrange
-        self.exists_mock.return_value = False
-        # Act
+    def _assert_save_yaml_success(self):
+        self.open_mock.assert_called_once_with('mytags.yaml', 'w')
+        self.file_mock.write.assert_has_calls([
+            call('Tag A:{n}- file_1.txt{n}'.format(n=os.linesep)),
+            call('Tag B:{n}- file_2.txt{n}- file_3.txt{n}'.format(
+                n=os.linesep)),
+            call('Tag C:{n}- file_2.txt{n}- file_3.txt{n}'.format(
+                n=os.linesep)),
+            call('Tag D:{n}- file_3.txt{n}'.format(n=os.linesep))
+        ])
+        self.file_mock.close.assert_called_once_with()
+
+    def test_save_json_case(self):
+        # Arrange/Act
+        taggart.save('mytags.json', fmt='json')
+        # Assert
+        self._assert_save_json_success()
+
+    def test_save_txt_case(self):
+        # Arrange/Act
         taggart.save('mytags.txt')
         # Assert
-        self._assert_save_success()
+        self._assert_save_txt_success()
+
+    def test_save_yaml_case(self):
+        # Arrange/Act
+        taggart.save('mytags.yaml', fmt='yaml')
+        # Assert
+        self._assert_save_yaml_success()
 
     def test_save_allows_overwrite_by_default(self):
         # Arrange
@@ -189,7 +221,7 @@ class saved_TestCase(load_save_BaseCase):
         taggart.save('mytags.txt')
         # Assert
         self.exists_mock.assert_called_once_with('mytags.txt')
-        self._assert_save_success()
+        self._assert_save_txt_success()
 
 
 class load_TestCase(load_save_BaseCase):
@@ -197,10 +229,9 @@ class load_TestCase(load_save_BaseCase):
     def setUp(self):
         super(load_TestCase, self).setUp()
 
-    def _assert_load_success(self):
-        self.exists_mock.assert_called_once_with('mytags.txt')
-        self.open_mock.assert_called_once_with('mytags.txt', 'r')
-        self.file_mock.readlines.assert_called_once_with()
+    def _assert_load_success(self, fmt='txt'):
+        self.exists_mock.assert_called_once_with('mytags.' + fmt)
+        self.open_mock.assert_called_once_with('mytags.' + fmt, 'r')
         self.file_mock.close.assert_called_once_with()
         expect = {
             'Tag A': ['file_1.txt'],
@@ -210,7 +241,7 @@ class load_TestCase(load_save_BaseCase):
         }
         self.assertEqual(expect, taggart.THE_LIST)
 
-    def test_load(self):
+    def test_load_txt(self):
         # Arrange
         reload(taggart)
         taggart.logger.setLevel('ERROR')
@@ -226,6 +257,36 @@ class load_TestCase(load_save_BaseCase):
         taggart.load('mytags.txt')
         # Assert
         self._assert_load_success()
+
+    def test_load_json(self):
+        # Arrange
+        reload(taggart)
+        taggart.logger.setLevel('ERROR')
+        self.exists_mock.return_value = True
+        self.file_mock.read.return_value = (
+            '{"Tag A": ["file_1.txt"],'
+            ' "Tag B": ["file_2.txt", "file_3.txt"],'
+            ' "Tag C": ["file_2.txt", "file_3.txt"],'
+            ' "Tag D": ["file_3.txt"]}')
+        # Act
+        taggart.load('mytags.json', fmt='json')
+        # Assert
+        self._assert_load_success('json')
+
+    def test_load_yaml(self):
+        # Arrange
+        reload(taggart)
+        taggart.logger.setLevel('ERROR')
+        self.exists_mock.return_value = True
+        self.file_mock.read.return_value = (
+            'Tag A:\n- file_1.txt\n'
+            'Tag B:\n- file_2.txt\n- file_3.txt\n'
+            'Tag C:\n- file_2.txt\n- file_3.txt\n'
+            'Tag D:\n- file_3.txt')
+        # Act
+        taggart.load('mytags.yaml', fmt='yaml')
+        # Assert
+        self._assert_load_success('yaml')
 
     def test_load_overwrite_function_works(self):
         # Arrange
@@ -258,7 +319,7 @@ class load_TestCase(load_save_BaseCase):
     def test_load_allows_existence_assertion(self):
         # Arrange
         reload(taggart)
-        taggart.logger.setLevel('ERROR')
+        taggart.logger.setLevel('CRITICAL')
         self.exists_mock.side_effect = lambda x: (
             False if x == 'nonexistant.txt' else True)
         self.file_mock.readlines.return_value = [
