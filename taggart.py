@@ -1,4 +1,4 @@
-"""Commander Taggart has saved us."""
+"""Introducing Taggart: The simple file tagger."""
 
 import logging
 import os
@@ -36,7 +36,17 @@ MAPPING = TAG_TO_FILE
 
 
 def tag(file_name, tag_name, assert_exists=False):
-    """Ah, they have a new Commander..."""
+    """
+    Add a single tag to a single file, optionally asserting file existence.
+
+    @param file_name: Relative or absolute path to the file to tag
+    @type file_name: str
+    @param tag_name: The tag to apply to the file
+    @type tag_name: str
+    @param assert_exists: If True, don't tag nonexistent files
+    @type assert_exists: bool
+    @raise IOError: When assert_exists is True and file_name does not exist
+    """
     if assert_exists and not os.path.exists(file_name):
         err = 'File "%s" not found!' % file_name
         logger.error(err)
@@ -58,7 +68,16 @@ def tag(file_name, tag_name, assert_exists=False):
 
 
 def tags(file_names, tag_names, assert_exists=False):
-    """Tag multiple files with multiple tags."""
+    """
+    Tag multiple files with multiple tags all at once.
+
+    @param file_names: A file or a list of files to tag
+    @type file_names: str or list
+    @param tag_names: A tag or a list of tags to apply to the file or files
+    @type tag_names: str or list
+    @param assert_exists: If True, prevents tagging nonexistant files
+    @type assert_exists: bool
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if isinstance(file_names, basestring):
@@ -78,7 +97,14 @@ def tags(file_names, tag_names, assert_exists=False):
 
 
 def untag(file_name, tag_name):
-    """I'm not the Commander."""
+    """
+    Remove a single tag from a single file.
+
+    @param file_name: The tagged file
+    @type file_name: str
+    @param tag_name: The tag to remove
+    @type tag_name: str
+    """
     if MAPPING == TAG_TO_FILE:
         if tag_name not in THE_LIST:
             return
@@ -99,7 +125,14 @@ def untag(file_name, tag_name):
 
 
 def untags(file_names, tag_names):
-    """Remove multiple tags from multiple files."""
+    """
+    Remove multiple tags from multiple files all at once.
+
+    @param file_names: A file or list of files from which to remove tags
+    @type file_names: str or list
+    @param tag_names: A tag or tags to remove from the file or files
+    @type tag_names: str or list
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if isinstance(file_names, basestring):
@@ -119,7 +152,15 @@ def untags(file_names, tag_names):
 
 
 def save(output_file, overwrite=True):
-    """The mists of this planet are filling my head with such thoughts..."""
+    """
+    Save the list of tags to a file.
+
+    @param output_file: The name of the file to save
+    @type output_file: str
+    @param overwrite: If True, overwrite the file if it exists
+    @type overwrite: bool
+    @raise IOError: When overwrite is False and output_file already exists
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if not overwrite and os.path.exists(output_file):
@@ -144,7 +185,18 @@ def save(output_file, overwrite=True):
 
 
 def load(input_file, overwrite=False, assert_exists=False):
-    """It was cute when I didn't know you."""
+    """
+    Load a list of tags from a file.
+
+    @param input_file: The name of the file to load
+    @type input_file: str
+    @param overwrite: If True, wipe the existing tag list in memory, if any.
+                      If False, append to the existing tag list in memory.
+    @type overwrite: bool
+    @param assert_exists: If True, don't tag nonexistant files
+    @type assert_exists: bool
+    @raise IOError: When input_file does not exist
+    """
     if not os.path.exists(input_file):
         err = 'File "%s" not found!' % input_file
         logger.error(err)
@@ -163,7 +215,17 @@ def load(input_file, overwrite=False, assert_exists=False):
 
 
 def rename_tag(old_tag, new_tag):
-    """And now, back after 18 years..."""
+    """
+    Rename a tag.
+
+    Note that this renames a tag itself, not an application of a tag.
+    Not a single instance of the old tag will remain applied to any file.
+
+    @param old_tag: The old tag to rename
+    @type old_tag: str
+    @param new_tag: The new tag name to apply
+    @type new_tag: str
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
@@ -182,7 +244,16 @@ def rename_tag(old_tag, new_tag):
 
 
 def rename_file(old_file, new_file):
-    """The ship was a model as big as this, a very clever deception indeed."""
+    """
+    Rename a file.
+
+    Note that this renames a file itself across all tags that may apply to it.
+
+    @param old_file: The old file to rename
+    @type old_file: str
+    @param new_file: The new name of the file
+    @type new_file: str
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
@@ -202,7 +273,14 @@ def rename_file(old_file, new_file):
 
 
 def get_files_by_tag(tag_name):
-    """Find them."""
+    """
+    Given a tag, get all files associated with that tag.
+
+    @param tag_name: The name of the tag to query on
+    @type tag_name: str
+    @return: A list of associated file names
+    @rtype: list of str
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
@@ -220,7 +298,14 @@ get_tag_files = get_files_by_tag
 
 
 def get_tags_by_file(file_name):
-    """FIIIIND THEEEEM."""
+    """
+    Given a file, get all tags associated with that file.
+
+    @param file_name: The name of the file to query on
+    @type file_name: str
+    @return: A list of assocaited tag names
+    @rtype: list of str
+    """
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
@@ -238,7 +323,7 @@ get_file_tags = get_tags_by_file
 
 
 def get_tags():
-    """Self-explanatory."""
+    """Self-explanatory: Get all tags currently in memory."""
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
@@ -253,7 +338,7 @@ def get_tags():
 
 
 def get_files():
-    """Self-explanatory."""
+    """Self-explanatory: Get all files with tags currently stored in memory."""
     logger.debug('Using %s memory mapping.' % MAPPING)
 
     if MAPPING == TAG_TO_FILE:
