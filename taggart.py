@@ -89,11 +89,17 @@ def tags(file_names, tag_names, assert_exists=False):
     if len(file_names) <= len(tag_names):
         for file_name in file_names:
             for tag_name in tag_names:
-                tag(file_name, tag_name, assert_exists)
+                try:
+                    tag(file_name, tag_name, assert_exists)
+                except IOError as e:
+                    logger.warn(e)
     else:
         for tag_name in tag_names:
             for file_name in file_names:
-                tag(file_name, tag_name, assert_exists)
+                try:
+                    tag(file_name, tag_name, assert_exists)
+                except IOError as e:
+                    logger.warn(e)
 
 
 def untag(file_name, tag_name):

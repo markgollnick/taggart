@@ -70,6 +70,21 @@ class tags_TestCase(Taggart_BaseCase):
         # Assert
         tag_mock.assert_has_calls(expect)
 
+    @patch.object(taggart, 'tag')
+    def test_tags_supresses_errors(self, tag_mock):
+        # Arrange
+        expect = [
+            call('file_1.txt', 'Tag A', True),
+            call('file_2.txt', 'Tag A', True),
+            call('file_3.txt', 'Tag A', True),
+        ]
+        tag_mock.side_effect = IOError
+        # Act
+        taggart.tags('file_1.txt', 'Tag A', True)
+        taggart.tags(['file_2.txt', 'file_3.txt'], 'Tag A', True)
+        # Assert
+        tag_mock.assert_has_calls(expect)
+
 
 class untag_TestCase(Taggart_BaseCase):
 
