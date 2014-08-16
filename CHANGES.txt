@@ -1,1 +1,2 @@
 v1.0.0, 2014-06-06 -- Introducing Taggart: The simple file tagger.
+v1.1.0, 2014-08-16 -- Add multiple tagging support, additional output formats.

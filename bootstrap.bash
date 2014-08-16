@@ -1,54 +1,60 @@
 #!/bin/bash
 
 # Initialization
-argc=($#)
-argv=($@)
-arg0=${0#./} # Ensure no dot prefix
-this=${0##*/} # Name of executing script
-wdir=$([[ $0 == /* ]] && echo "${arg0%$this}" || echo "${PWD}/${arg0%$this}")
-wdir=${wdir%/} # Ensure no trailing slash
-pdir=${wdir%/*}
+ARG0=${0#./}
+THIS=${0##*/}
+WDIR=$([[ $0 == /* ]] && echo "${ARG0%$THIS}" || echo "$PWD/${ARG0%$THIS}")
+WDIR=${WDIR%/}
 
-# Bootstrapper requirements
-REQUIREMENTS="Python==2.7
-setuptools==0.9.8
-pip==1.4.1
-virtualenv==1.10.1
-virtualenvwrapper==4.3
-"
 
-# Display minimum requirements before bootstrapping an environment is possible
-print_requirements() {
-    echo "$1 not found."
-    echo "Please ensure you have the following installed, at minimum:"
-    for req in ${REQUIREMENTS[@]}; do echo $req; done
-    exit 1
+# Script entry point
+__bootstrap_main() {
+    IFS=$'\n'
+    argc=($#)
+    argv=($@)
+
+    # Usage information
+    if [ "${argv[0]}" == "--help" -o "${argv[0]}" == "-h" ]; then
+        echo "Usage: $THIS [virtualenv_name]"
+        return 0
+    fi
+
+    # Sets the working directory for all virtualenvs if it is not already set
+    if [ "$WORKON_HOME" == "" ]; then
+        export WORKON_HOME="$HOME/.virtualenvs"
+    fi
+    export VIRTUALENVWRAPPER_SCRIPT=$(which virtualenvwrapper.sh)
+
+    # Sources virtualenvwrapper so all the commands are available in the shell
+    if [ "$VIRTUALENVWRAPPER_SCRIPT" == "" ]; then
+        echo "virtualenvwrapper not found."
+        echo "Please pip install virtualenv and virtualenvwrapper"
+        return 1
+    fi
+    source "$VIRTUALENVWRAPPER_SCRIPT"
+
+    # Set up or activate a virtual environment for this project
+    venv=$([[ "${argv[0]}" != "" ]] && echo "${argv[0]}" || echo "${WDIR##*/}")
+    if [ ! -e "$WORKON_HOME/$venv" ]; then
+        mkvirtualenv "$venv" -a "$WDIR"
+    else
+        workon "$venv"
+    fi
+    if [ "$VIRTUAL_ENV" == "" ]; then
+        echo "Could not bootstrap virtual environment, quitting..."
+        return 1
+    fi
+
+    # Install production and development requirements if present
+    for requirements in $WDIR/requirements{_dev,}.txt; do
+        if [ -e "$requirements" ]; then
+            pip install -r "$requirements"
+        fi
+    done
+
+    echo "Bootstrap successful. Type 'workon $venv' to begin work."
+    return 0
 }
 
-# Project name
-project=${wdir##*/}
 
-# virtualenvwrapper setup
-export VIRTUALENVWRAPPER_PYTHON=$(which python)
-
-# Sets the working directory for all virtualenvs
-export WORKON_HOME=$HOME/.virtualenvs
-
-# Sources the virtualenvwrapper so all the commands are availabe in the shell
-export VIRTUALENVWRAPPER=$(which virtualenvwrapper.sh)
-
-# Detect requirements
-if [ "$VIRTUALENVWRAPPER_PYTHON" == "" ]; then
-    print_requirements "python"
-elif [ "$VIRTUALENVWRAPPER" == "" ]; then
-    print_requirements "virtualenvwrapper"
-fi
-
-# Set up a virtual environment for this project
-source "$VIRTUALENVWRAPPER"
-if [ ! -e "$WORKON_HOME/$project.venv" ]; then
-    mkvirtualenv $project.venv -a $wdir
-else
-    workon $project.venv
-fi
-pip install -r requirements_dev.txt
+__bootstrap_main "$@"
