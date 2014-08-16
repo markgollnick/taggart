@@ -31,7 +31,6 @@
 
     <target name="bootstrap" depends="configure-properties" description="Automatically set up a virtual environment fit for developing Taggart">
         <exec executable="./bootstrap.bash" dir="${basedir}" failonerror="true" />
-        <echo message='Bootstrap successful. Run "workon taggart.venv" to activate the development environment.' />
     </target>
 
     <target name="configure" depends="configure-properties" description="Configure the working directory for building and testing Taggart">
