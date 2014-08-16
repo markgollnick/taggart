@@ -1,7 +1,9 @@
 import os
-import taggart
 import unittest
+
 from mock import Mock, call, patch
+
+import taggart
 
 
 class Taggart_BaseCase(unittest.TestCase):
@@ -39,6 +41,36 @@ class tag_TestCase(Taggart_BaseCase):
             IOError, taggart.tag, 'file.txt', 'New Tag', assert_exists=True)
 
 
+class tags_TestCase(Taggart_BaseCase):
+
+    @patch.object(taggart, 'tag')
+    def test_tags_for_many_files(self, tag_mock):
+        # Arrange
+        expect = [
+            call('file_1.txt', 'OneTagToRuleThemAll', False),
+            call('file_2.txt', 'OneTagToRuleThemAll', False),
+            call('file_3.txt', 'OneTagToRuleThemAll', False)
+        ]
+        # Act
+        taggart.tags(
+            ['file_1.txt', 'file_2.txt', 'file_3.txt'], 'OneTagToRuleThemAll')
+        # Assert
+        tag_mock.assert_has_calls(expect)
+
+    @patch.object(taggart, 'tag')
+    def test_tags_for_many_tags(self, tag_mock):
+        # Arrange
+        expect = [
+            call('FileWithManyTags.pdf', 'Tag_1', False),
+            call('FileWithManyTags.pdf', 'Tag_2', False),
+            call('FileWithManyTags.pdf', 'Tag_3', False)
+        ]
+        # Act
+        taggart.tags('FileWithManyTags.pdf', ['Tag_1', 'Tag_2', 'Tag_3'])
+        # Assert
+        tag_mock.assert_has_calls(expect)
+
+
 class untag_TestCase(Taggart_BaseCase):
 
     def test_untag(self):
@@ -68,6 +100,36 @@ class untag_TestCase(Taggart_BaseCase):
         self.assertEqual(expect, taggart.THE_LIST)
 
 
+class untags_TestCase(Taggart_BaseCase):
+
+    @patch.object(taggart, 'untag')
+    def test_untags_for_many_files(self, untag_mock):
+        # Arrange
+        expect = [
+            call('file_1.txt', 'OneTagToRuleThemAll'),
+            call('file_2.txt', 'OneTagToRuleThemAll'),
+            call('file_3.txt', 'OneTagToRuleThemAll')
+        ]
+        # Act
+        taggart.untags(
+            ['file_1.txt', 'file_2.txt', 'file_3.txt'], 'OneTagToRuleThemAll')
+        # Assert
+        untag_mock.assert_has_calls(expect)
+
+    @patch.object(taggart, 'untag')
+    def test_untags_for_many_tags(self, untag_mock):
+        # Arrange
+        expect = [
+            call('FileWithManyTags.pdf', 'Tag_1'),
+            call('FileWithManyTags.pdf', 'Tag_2'),
+            call('FileWithManyTags.pdf', 'Tag_3')
+        ]
+        # Act
+        taggart.untags('FileWithManyTags.pdf', ['Tag_1', 'Tag_2', 'Tag_3'])
+        # Assert
+        untag_mock.assert_has_calls(expect)
+
+
 class load_save_BaseCase(Taggart_BaseCase):
 
     def setUp(self):
@@ -84,7 +146,6 @@ class load_save_BaseCase(Taggart_BaseCase):
 class saved_TestCase(load_save_BaseCase):
 
     def _assert_save_success(self):
-        self.exists_mock.assert_called_once_with('mytags.txt')
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
             call('Tag A<==>file_1.txt' + os.linesep),
@@ -104,14 +165,15 @@ class saved_TestCase(load_save_BaseCase):
         # Assert
         self._assert_save_success()
 
-    def test_save_disallows_overwrite_by_default(self):
+    def test_save_allows_overwrite_by_default(self):
         # Arrange
         self.exists_mock.return_value = True
         # Act/Assert
-        self.assertRaises(IOError, taggart.save, 'mytags.txt')
+        self.assertRaises(IOError, taggart.save, 'mytags.txt', overwrite=False)
         # Act
-        taggart.save('mytags.txt', overwrite=True)
+        taggart.save('mytags.txt')
         # Assert
+        self.exists_mock.assert_called_once_with('mytags.txt')
         self._assert_save_success()
 
 

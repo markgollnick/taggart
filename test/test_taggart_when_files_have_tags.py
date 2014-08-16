@@ -1,7 +1,9 @@
 import os
-import taggart
 import unittest
+
 from mock import Mock, call, patch
+
+import taggart
 
 
 class Taggart_BaseCase(unittest.TestCase):
@@ -79,7 +81,6 @@ class saved_TestCase(Taggart_BaseCase):
             else real_open(x, *args, **kwargs))
 
     def _assert_save_success(self):
-        self.exists_mock.assert_called_once_with('mytags.txt')
         self.open_mock.assert_called_once_with('mytags.txt', 'w')
         self.file_mock.write.assert_has_calls([
             call('Tag A<==>file_1.txt' + os.linesep),
@@ -99,14 +100,15 @@ class saved_TestCase(Taggart_BaseCase):
         # Assert
         self._assert_save_success()
 
-    def test_save_disallows_overwrite_by_default(self):
+    def test_save_allows_overwrite_by_default(self):
         # Arrange
         self.exists_mock.return_value = True
         # Act/Assert
-        self.assertRaises(IOError, taggart.save, 'mytags.txt')
+        self.assertRaises(IOError, taggart.save, 'mytags.txt', overwrite=False)
         # Act
-        taggart.save('mytags.txt', overwrite=True)
+        taggart.save('mytags.txt')
         # Assert
+        self.exists_mock.assert_called_once_with('mytags.txt')
         self._assert_save_success()
 
 
