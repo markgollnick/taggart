@@ -46,9 +46,7 @@
     <target name="full" depends="build" description="Perform a full build of the project" />
 
     <target name="test-python" depends="configure-properties" description="Run python tests">
-        <exec executable="${nose.executable}" dir="${basedir}" failonerror="true">
-            <arg line="${basedir} --with-cover --cover-package=taggart --cover-erase --cover-min-percentage=100" />
-        </exec>
+        <exec executable="${nose.executable}" dir="${basedir}" failonerror="true" />
     </target>
 
     <target name="test" depends="test-python" description="Run all unit and integration tests" />
