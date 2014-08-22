@@ -11,12 +11,11 @@ Usage
 
 Easy installation:
 
-    $ pip install https://github.com/markgollnick/taggart/releases/download/v1.1.0/taggart-1.1.0.tar.gz
+    $ pip install https://github.com/markgollnick/taggart/releases/download/v1.2.0/taggart-1.2.0.tar.gz
 
 Simple interface:
 
     >>> import taggart
-    >>> taggart.load('tags.txt')
 
 Tag files one-at-a-time:
 
@@ -104,10 +103,30 @@ Save the results:
     - EE201/final.pdf
     - EE230/hw07.pdf
 
+…but you don't have to write anything to disk at all if you don't want to:
+
+- `taggart.dump()` … `taggart.dump_json()` … `taggart.dump_yaml()`
+
+You also don't have to load anything form disk, either, if you already have the
+data you need from somewhere else (represented as `s`):
+
+- `taggart.parse(s)` … `taggart.parse_json(s)` … `taggart.parse_yaml(s)`
+
+Server crashed? Lost all your tags that were in-memory? No worries. Assuming
+you make periodic backups (you should), Taggart’s got you covered:
+
+- `taggart.load('tags.txt')` …
+  `taggart.load('tags.json')` …
+  `taggart.load('tags.yaml')`
+
+
+Advanced Usage
+--------------
+
 If you get to tagging many, many, MANY files, depending on your application, it
 may be more beneficial for you (in computational terms) to reference tags by
 their files (aka "file-to-tag mapping") rather than files by their tags (aka
-"tag-to-file mapping", and also the default setting). Taggart makes this easy:
+"tag-to-file mapping", which is the default setting). Taggart makes this easy:
 
     >>> import taggart
     >>> taggart.MAPPING = taggart.FILE_TO_TAG
@@ -139,8 +158,16 @@ which of these two mapping styles you should use, see the documentation in
 `taggart.py`, or set taggart's logger to `INFO` while your application is using
 taggart, and see if you encounter any messages about slow computations.
 
+If the need is great enough, you can even swap between these two memory-mapping
+formats without ever having to write anything to disk (this may be a very
+expensive operation, depending on how many files and tags you have):
+
+    >>> taggart.remap()
+
 For most folks, however, the default setting of tag-to-file mapping is probably
-the ideal option.
+the ideal option, and remapping shouldn’t be necessary.
+
+Good luck!
 
 
 Testing
