@@ -5,14 +5,14 @@ import logging
 import os
 
 # Initialize the logger
-__DEBUG = False
+DEBUG = False
 __formatter = logging.Formatter(logging.BASIC_FORMAT)
 __handler = logging.StreamHandler()
 __handler.setFormatter(__formatter)
 logger = logging.getLogger('taggart')
 del logger.handlers[:]
 logger.addHandler(__handler)
-logger.setLevel(logging.WARNING if not __DEBUG else logging.DEBUG)
+logger.setLevel(logging.WARNING if not DEBUG else logging.DEBUG)
 
 try:
     import yaml
@@ -40,14 +40,15 @@ FILE_TO_TAG = 'file-->tag'
 MAPPING = TAG_TO_FILE
 
 # OUTPUT FORMAT SETTING:
-# Available options are 'json', 'txt', and 'yaml'.
-FORMAT = 'txt'
+# Available options are 'json', 'text', and 'yaml'.
+FORMAT = 'text'
 
 # Separator for plain text format
 SEPARATOR = '<==>'
 
 # Return a file extension
 getext = lambda x: x[::-1].split('.', 1)[0][::-1]
+getfmt = lambda x: 'text' if x == 'txt' else 'yaml' if x == 'yml' else x
 
 
 def tag(file_name, tag_name, assert_exists=False):
@@ -172,6 +173,84 @@ def untags(file_names, tag_names):
                 untag(file_name, tag_name)
 
 
+def dump_json():
+    """
+    Render the tag list in JSON format.
+
+    @return: the JSONified tag list
+    @rtype: str
+    """
+    return json.dumps(THE_LIST, sort_keys=True)
+
+
+def dump_text(sort=False):
+    """
+    Render the tag list in plain text.
+
+    @param sort: If True, sort the output alphabetically
+    @type sort: str
+    @return: The tag associations (graph edges) in plain text format
+    @rtype: str
+    """
+    output = ''
+
+    if MAPPING == TAG_TO_FILE:
+        for tag_name, file_names in sorted(THE_LIST.items()):
+            lines = [tag_name + SEPARATOR + file_name
+                     for file_name in sorted(file_names)]
+            output += os.linesep.join(lines) + os.linesep
+
+    else:
+        for file_name, tag_names in sorted(THE_LIST.items()):
+            lines = [tag_name + SEPARATOR + file_name
+                     for tag_name in sorted(tag_names)]
+            output += os.linesep.join(lines) + os.linesep
+
+    if sort:
+        lines = [line for line in output.split(os.linesep) if line]
+        output = os.linesep.join(sorted(lines)) + os.linesep
+
+    return output
+
+
+def dump_yaml():
+    """
+    Render the tag list in YAML format.
+
+    @return: the YAMLified tag list
+    @rtype: str
+    """
+    output = ''
+
+    for x, y in sorted(THE_LIST.items()):
+        lines = x + ':' + os.linesep
+        lines += ('- ' + '{n}- '.join(sorted(y))).format(n=os.linesep)
+        output += lines + os.linesep
+
+    return output
+
+
+def dump(fmt=FORMAT):
+    """
+    Render output using a number of different formats.
+
+    Supported options are 'json', 'text', and 'yaml'.
+
+    @param fmt: The format to render
+    @type fmt: str
+    @return: Rendered tag output
+    @rtype: str
+    """
+    logger.debug('Using %s memory mapping.' % MAPPING)
+
+    if fmt == 'json':
+        return dump_json()
+    elif fmt == 'yaml':
+        return dump_yaml()
+    else:
+        return dump_text()
+
+
 def save(output_file, overwrite=True, fmt=None):
     """
     Save the list of tags to a file.
@@ -180,8 +259,8 @@ def save(output_file, overwrite=True, fmt=None):
     @type output_file: str
     @param overwrite: If True, overwrite the file if it exists
     @type overwrite: bool
-    @param fmt: The format to save the output in: json, txt, or yaml
-    @type fmt: str: 'json', 'txt', or 'yaml'
+    @param fmt: The format to save the output in: json, text, or yaml
+    @type fmt: str: 'json', 'text', or 'yaml'
     @raise IOError: When overwrite is False and output_file already exists
     """
     logger.debug('Using %s memory mapping.' % MAPPING)
@@ -191,36 +270,107 @@ def save(output_file, overwrite=True, fmt=None):
         logger.error(err)
         raise IOError(err)
 
-    fmt = getext(output_file).lower() if not fmt else FORMAT
+    fmt = fmt if fmt else getfmt(getext(output_file).lower())
+    content = dump(fmt)
 
     f = open(output_file, 'w')
-
-    if fmt == 'json':
-        f.write(json.dumps(THE_LIST, sort_keys=True))
-
-    elif fmt == 'yaml':
-        for x, y in sorted(THE_LIST.items()):
-            lines = x + ':' + os.linesep
-            lines += ('- ' + '{n}- '.join(sorted(y))).format(n=os.linesep)
-            f.write(lines + os.linesep)
-
-    else:
-        if MAPPING == TAG_TO_FILE:
-            for tag_name, file_names in sorted(THE_LIST.items()):
-                lines = [tag_name + SEPARATOR + file_name
-                         for file_name in sorted(file_names)]
-                f.write(os.linesep.join(lines) + os.linesep)
-
-        else:
-            for file_name, tag_names in sorted(THE_LIST.items()):
-                lines = [tag_name + SEPARATOR + file_name
-                         for tag_name in sorted(tag_names)]
-                f.write(os.linesep.join(lines) + os.linesep)
-
+    f.write(content)
     f.close()
 
 
-def load(input_file, overwrite=False, assert_exists=False, fmt=None):
+def parse_json(s):
+    """
+    Load a dictionary from a JSON object generated by dump_json().
+
+    This function should not be used with JSON objects generated by instances
+    of taggart using a different memory-mapping scheme than that of the
+    currently loaded instance, as it will pollute the tag-map with files where
+    there should be tags, and tags where there should be files.
+
+    @param s: The data to parse into a tag-map
+    @type s: str
+    @return: The tag-map, in dictionary format
+    @rtype: dict
+    """
+    return {str(k): [str(s) for s in v] for k, v in json.loads(s).items()}
+
+
+def parse_text(s):
+    """
+    Load a dictionary object generated by dump_text().
+
+    Since the plain-text format used by taggart is dumped the same way
+    regardless of what memory-mapping format is used during runtime, this
+    function can be used to switch between tag-to-file and file-to-tag
+    memory mapping on-the-fly (see the remap() function). The type of
+    dictionary that will be loaded is dependent on what the MAPPING value is
+    currently set to, so it is safe to use this method regardless of what state
+    taggart was in when the data was originally dumped.
+
+    @param s: The data to parse into a tag-map
+    @type s: str
+    @return: The tag-map, in dictionary format
+    @rtype: dict
+    """
+    output = {}
+
+    lines = [line for line in s.split(os.linesep) if line]
+    for line in lines:
+        relationship = line.strip()
+        tag_name, file_name = relationship.split(SEPARATOR, 1)
+
+        if MAPPING == TAG_TO_FILE:
+            if tag_name not in output:
+                output[tag_name] = []
+            output[tag_name].append(file_name)
+
+        else:
+            if file_name not in output:
+                output[file_name] = []
+            output[file_name].append(tag_name)
+
+    return output
+
+
+def parse_yaml(s):
+    """
+    Load a dictionary from a YAML object generated by dump_yaml().
+
+    This function should not be used with YAML objects generated by instances
+    of taggart using a different memory-mapping scheme than that of the
+    currently loaded instance, as it will pollute the tag-map with files where
+    there should be tags, and tags where there should be files.
+
+    @param s: The data to parse into a tag-map
+    @type s: str
+    @return: The tag-map, in dictionary format
+    @rtype: dict
+    """
+    return {str(k): [str(s) for s in v] for k, v in yaml.safe_load(s).items()}
+
+
+def parse(data, fmt=FORMAT):
+    """
+    Produce a dictionary from output generated by dump().
+
+    @param data: The data to parse into a tag-map dictionary
+    @type data: str
+    @param fmt: The format to assume for the input: 'json', 'text', or 'yaml'
+    @type fmt: str: json, text, or yaml
+    @return: The tag-map dictionary
+    @rtype: dict
+    """
+    logger.debug('Using %s memory mapping.' % MAPPING)
+
+    if fmt == 'json':
+        return parse_json(data)
+    elif fmt == 'yaml':
+        return parse_yaml(data)
+    else:
+        return parse_text(data)
+
+
+def load(input_file, overwrite=False, fmt=None):
     """
     Load a list of tags from a file.
 
@@ -229,44 +379,42 @@ def load(input_file, overwrite=False, assert_exists=False, fmt=None):
     @param overwrite: If True, wipe the existing tag list in memory, if any.
                       If False, append to the existing tag list in memory.
     @type overwrite: bool
-    @param assert_exists: If True, don't tag nonexistant files
-    @type assert_exists: bool
-    @param fmt: The format to save the output in: json, txt, or yaml
-    @type fmt: str: 'json', 'txt', or 'yaml'
+    @param fmt: The format to save the output in: json, text, or yaml
+    @type fmt: str: 'json', 'text', or 'yaml'
     @raise IOError: When input_file does not exist
     """
+    global THE_LIST
+
     if not os.path.exists(input_file):
         err = 'File "%s" not found!' % input_file
         logger.error(err)
         raise IOError(err)
 
     if overwrite:
-        global THE_LIST
         THE_LIST = {}
 
-    fmt = getext(input_file).lower() if not fmt else FORMAT
-
     f = open(input_file, 'r')
-
-    if fmt == 'json':
-        THE_LIST.update({
-            str(k): [
-                str(s) for s in v] for k, v in json.loads(f.read()).items()
-        })
-
-    elif fmt == 'yaml':
-        THE_LIST.update({
-            str(k): [
-                str(s) for s in v] for k, v in yaml.load(f.read()).items()
-        })
-
-    else:
-        for line in f.readlines():
-            relationship = line.rstrip(os.linesep)
-            tag_name, file_name = relationship.split(SEPARATOR, 1)  # :-(
-            tag(file_name, tag_name, assert_exists)
-
+    data = f.read()
     f.close()
+
+    fmt = fmt if fmt else getfmt(getext(input_file).lower())
+    data = parse(data, fmt)
+
+    THE_LIST.update(data)
+
+
+def remap():
+    """
+    Swap between tag-to-file memory-mapping, and tag-to-file memory mapping.
+
+    This may be a very expensive operation depending on how many tags you have.
+    """
+    global MAPPING
+    global THE_LIST
+
+    data = dump_text()
+    MAPPING = FILE_TO_TAG if MAPPING == TAG_TO_FILE else TAG_TO_FILE
+    THE_LIST = parse_text(data)
 
 
 def rename_tag(old_tag, new_tag):
