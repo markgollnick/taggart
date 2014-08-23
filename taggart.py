@@ -370,6 +370,28 @@ def parse(data, fmt=FORMAT):
         return parse_text(data)
 
 
+def init(data, overwrite=False, fmt=FORMAT):
+    """
+    Initialize the in-memory tag map from string input.
+
+    @param data: The data to parse and add to the in-memory map
+    @type data: str
+    @param overwrite: If True, wipe the existing tag list in memory, if any.
+                      If False, append to the existing tag list in memory.
+    @type overwrite: bool
+    @param fmt: The format to use to parse the input: json, text, or yaml
+    @type fmt: str: 'json', 'text', or 'yaml'
+    """
+    global THE_LIST
+
+    tag_map = parse(data, fmt)
+
+    if overwrite:
+        THE_LIST = {}
+
+    THE_LIST.update(tag_map)
+
+
 def load(input_file, overwrite=False, fmt=None):
     """
     Load a list of tags from a file.
@@ -379,28 +401,21 @@ def load(input_file, overwrite=False, fmt=None):
     @param overwrite: If True, wipe the existing tag list in memory, if any.
                       If False, append to the existing tag list in memory.
     @type overwrite: bool
-    @param fmt: The format to save the output in: json, text, or yaml
+    @param fmt: The format to use to parse the input: json, text, or yaml
     @type fmt: str: 'json', 'text', or 'yaml'
     @raise IOError: When input_file does not exist
     """
-    global THE_LIST
-
     if not os.path.exists(input_file):
         err = 'File "%s" not found!' % input_file
         logger.error(err)
         raise IOError(err)
-
-    if overwrite:
-        THE_LIST = {}
 
     f = open(input_file, 'r')
     data = f.read()
     f.close()
 
     fmt = fmt if fmt else getfmt(getext(input_file).lower())
-    data = parse(data, fmt)
-
-    THE_LIST.update(data)
+    init(data, overwrite, fmt)
 
 
 def remap():

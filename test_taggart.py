@@ -317,6 +317,26 @@ class parse_TestCase(BaseCase):
         self.assertIs(result, text_mock.return_value)
 
 
+class init_TestCase(BaseCase):
+    @patch.object(taggart, 'parse')
+    def test_init_success(self, parse_mock):
+        parse_mock.return_value = {'result': 'success'}
+        taggart.THE_LIST = {'preexisting': 'condition'}
+        taggart.init('parsable data')
+        parse_mock.assert_called_once_with('parsable data', 'text')
+        self.assertEqual(
+            {'preexisting': 'condition', 'result': 'success'},
+            taggart.THE_LIST)
+
+    @patch.object(taggart, 'parse')
+    def test_init_with_clean_slate_success(self, parse_mock):
+        parse_mock.return_value = {'result': 'success'}
+        taggart.THE_LIST = {'preexisting': 'condition'}
+        taggart.init('parsable data', overwrite=True)
+        parse_mock.assert_called_once_with('parsable data', 'text')
+        self.assertEqual({'result': 'success'}, taggart.THE_LIST)
+
+
 class load_TestCase(BaseCase):
     def test_load_rasies_error_for_nonexistent_file(self):
         self.exists_mock.return_value = False
