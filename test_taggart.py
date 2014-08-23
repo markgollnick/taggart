@@ -370,8 +370,26 @@ class load_TestCase(BaseCase):
 
 
 class remap_TTF_TestCase(Taggart_TTF_BaseCase):
-    def test_remap(self):
-        taggart.remap()
+    def test_remap_to_same_mapping(self):
+        taggart.remap(taggart.MAPPING)
+        self.assertEqual({
+            'Tag A': ['file_1'],
+            'Tag B': ['file_2', 'file_3'],
+            'Tag C': ['file_2', 'file_3'],
+            'Tag D': ['file_3']
+        }, taggart.THE_LIST)
+
+    def test_remap_to_invalid_map_does_nothing(self):
+        taggart.remap('treasure map format')
+        self.assertEqual({
+            'Tag A': ['file_1'],
+            'Tag B': ['file_2', 'file_3'],
+            'Tag C': ['file_2', 'file_3'],
+            'Tag D': ['file_3']
+        }, taggart.THE_LIST)
+
+    def test_remap_success(self):
+        taggart.remap()  # Toggle
         self.assertEqual({
             'file_1': ['Tag A'],
             'file_2': ['Tag B', 'Tag C'],

@@ -418,17 +418,27 @@ def load(input_file, overwrite=False, fmt=None):
     init(data, overwrite, fmt)
 
 
-def remap():
+def remap(map_as=None):
     """
     Swap between tag-to-file memory-mapping, and tag-to-file memory mapping.
 
     This may be a very expensive operation depending on how many tags you have.
+
+    @param map_as: The mapping scheme to use, tag-to-file, or file-to-tag.
+                   If left at None, remap() will toggle between the two.
+    @type map_as: str: 'tag-->file' or 'file-->tag'
     """
     global MAPPING
     global THE_LIST
 
+    if map_as == MAPPING or map_as not in (TAG_TO_FILE, FILE_TO_TAG, None):
+        return
+
+    if map_as is None:
+        map_as = FILE_TO_TAG if MAPPING == TAG_TO_FILE else TAG_TO_FILE
+
     data = dump_text()
-    MAPPING = FILE_TO_TAG if MAPPING == TAG_TO_FILE else TAG_TO_FILE
+    MAPPING = map_as
     THE_LIST = parse_text(data)
 
 
