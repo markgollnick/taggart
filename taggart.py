@@ -51,7 +51,7 @@ getext = lambda x: x[::-1].split('.', 1)[0][::-1]
 getfmt = lambda x: 'text' if x == 'txt' else 'yaml' if x == 'yml' else x
 
 
-def tag(file_name, tag_name, assert_exists=False):
+def _tag(file_name, tag_name, assert_exists=False):
     """
     Add a single tag to a single file, optionally asserting file existence.
 
@@ -83,7 +83,7 @@ def tag(file_name, tag_name, assert_exists=False):
             THE_LIST[file_name] = [tag_name]
 
 
-def tags(file_names, tag_names, assert_exists=False):
+def tag(file_names, tag_names, assert_exists=False):
     """
     Tag multiple files with multiple tags all at once.
 
@@ -106,19 +106,19 @@ def tags(file_names, tag_names, assert_exists=False):
         for file_name in file_names:
             for tag_name in tag_names:
                 try:
-                    tag(file_name, tag_name, assert_exists)
+                    _tag(file_name, tag_name, assert_exists)
                 except IOError as e:
                     logger.warn(e)
     else:
         for tag_name in tag_names:
             for file_name in file_names:
                 try:
-                    tag(file_name, tag_name, assert_exists)
+                    _tag(file_name, tag_name, assert_exists)
                 except IOError as e:
                     logger.warn(e)
 
 
-def untag(file_name, tag_name):
+def _untag(file_name, tag_name):
     """
     Remove a single tag from a single file.
 
@@ -146,7 +146,7 @@ def untag(file_name, tag_name):
             del THE_LIST[file_name]
 
 
-def untags(file_names, tag_names):
+def untag(file_names, tag_names):
     """
     Remove multiple tags from multiple files all at once.
 
@@ -166,11 +166,11 @@ def untags(file_names, tag_names):
     if len(file_names) <= len(tag_names):
         for file_name in file_names:
             for tag_name in tag_names:
-                untag(file_name, tag_name)
+                _untag(file_name, tag_name)
     else:
         for tag_name in tag_names:
             for file_name in file_names:
-                untag(file_name, tag_name)
+                _untag(file_name, tag_name)
 
 
 def dump_json():
