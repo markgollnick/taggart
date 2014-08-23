@@ -33,20 +33,18 @@
         <exec executable="./bootstrap.bash" dir="${basedir}" failonerror="true" />
     </target>
 
-    <target name="configure" depends="configure-properties" description="Configure the working directory for building and testing Taggart">
-        <echo message='Taggart is a simple enough project that it needs no configuring. Run "ant full test".' />
-    </target>
+    <target name="configure" depends="configure-properties" description="Configure the working directory for building and testing Taggart" />
 
-    <target name="build" depends="configure-properties">
+    <target name="build" depends="configure-properties" description="Perform a full build of the project">
         <exec executable="${python.executable}" dir="${basedir}" failonerror="true">
             <arg line="setup.py build" />
         </exec>
     </target>
 
-    <target name="full" depends="build" description="Perform a full build of the project" />
-
-    <target name="test-python" depends="configure-properties" description="Run python tests">
+    <target name="test-python" depends="configure-properties">
         <exec executable="${nose.executable}" dir="${basedir}" failonerror="true" />
+        <exec executable="${flake8.executable}" dir="${basedir}" failonerror="true" />
+        <exec executable="${pep257.executable}" dir="${basedir}" failonerror="true" />
     </target>
 
     <target name="test" depends="test-python" description="Run all unit and integration tests" />
