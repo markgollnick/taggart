@@ -1,9 +1,12 @@
 ﻿Taggart
 =======
 
-![Taggart](http://content.screencast.com/users/markgollnick/folders/Jing/media/31dd044b-f409-439d-947b-c9baa0499800/taggart.png)
+[![Build Status](https://travis-ci.org/markgollnick/taggart.svg?branch=master)](https://travis-ci.org/markgollnick/taggart)
+[![Coverage Status](https://img.shields.io/coveralls/markgollnick/taggart.svg)](https://coveralls.io/r/markgollnick/taggart)
 
 Taggart is a simple yet robust file-tagging aid.
+
+![Taggart](http://content.screencast.com/users/markgollnick/folders/Jing/media/25f679d2-bece-4324-841b-86adaf408e33/taggart.png)
 
 
 Usage
@@ -11,7 +14,7 @@ Usage
 
 Easy installation:
 
-    $ pip install git+ssh://git@github.com/markgollnick/taggart@1.3.0#egg=taggart-1.3.0
+    $ pip install git+ssh://git@github.com/markgollnick/taggart@v1.3.0#egg=taggart-1.3.0
 
 Simple interface:
 
@@ -163,8 +166,21 @@ Good luck!
 Testing
 -------
 
-[![Build Status](https://travis-ci.org/markgollnick/taggart.svg?branch=master)](https://travis-ci.org/markgollnick/taggart)
-[![Coverage Status](https://img.shields.io/coveralls/markgollnick/taggart.svg)](https://coveralls.io/r/markgollnick/taggart)
+1.  Requirements:
+
+    - Python 2.7.x
+    - Pip >= 1.4.1
+    - virtualenv
+    - virtualenvwrapper
+    - ant >= 1.8.4
+
+2.  Run the following:
+
+        $ ant bootstrap
+        $ workon taggart
+        $ ant test
+
+It's that simple.
 
 [![WOMM Certified™](http://content.screencast.com/users/markgollnick/folders/Jing/media/19ea7b38-4a94-450c-9190-3e5115ebe1c4/womm.png)](http://blog.codinghorror.com/the-works-on-my-machine-certification-program/)
 
