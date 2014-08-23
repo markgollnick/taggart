@@ -1,4 +1,5 @@
 nose.executable=nosetests
 pip.executable=pip
 python.executable=python
-virtualenv.executable=virtualenv
+flake8.executable=flake8
+pep257.executable=pep257

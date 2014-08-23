@@ -51,7 +51,7 @@ getext = lambda x: x[::-1].split('.', 1)[0][::-1]
 getfmt = lambda x: 'text' if x == 'txt' else 'yaml' if x == 'yml' else x
 
 
-def tag(file_name, tag_name, assert_exists=False):
+def _tag(file_name, tag_name, assert_exists=False):
     """
     Add a single tag to a single file, optionally asserting file existence.
 
@@ -83,7 +83,7 @@ def tag(file_name, tag_name, assert_exists=False):
             THE_LIST[file_name] = [tag_name]
 
 
-def tags(file_names, tag_names, assert_exists=False):
+def tag(file_names, tag_names, assert_exists=False):
     """
     Tag multiple files with multiple tags all at once.
 
@@ -106,19 +106,19 @@ def tags(file_names, tag_names, assert_exists=False):
         for file_name in file_names:
             for tag_name in tag_names:
                 try:
-                    tag(file_name, tag_name, assert_exists)
+                    _tag(file_name, tag_name, assert_exists)
                 except IOError as e:
                     logger.warn(e)
     else:
         for tag_name in tag_names:
             for file_name in file_names:
                 try:
-                    tag(file_name, tag_name, assert_exists)
+                    _tag(file_name, tag_name, assert_exists)
                 except IOError as e:
                     logger.warn(e)
 
 
-def untag(file_name, tag_name):
+def _untag(file_name, tag_name):
     """
     Remove a single tag from a single file.
 
@@ -146,7 +146,7 @@ def untag(file_name, tag_name):
             del THE_LIST[file_name]
 
 
-def untags(file_names, tag_names):
+def untag(file_names, tag_names):
     """
     Remove multiple tags from multiple files all at once.
 
@@ -166,11 +166,11 @@ def untags(file_names, tag_names):
     if len(file_names) <= len(tag_names):
         for file_name in file_names:
             for tag_name in tag_names:
-                untag(file_name, tag_name)
+                _untag(file_name, tag_name)
     else:
         for tag_name in tag_names:
             for file_name in file_names:
-                untag(file_name, tag_name)
+                _untag(file_name, tag_name)
 
 
 def dump_json():
@@ -370,6 +370,28 @@ def parse(data, fmt=FORMAT):
         return parse_text(data)
 
 
+def init(data, overwrite=False, fmt=FORMAT):
+    """
+    Initialize the in-memory tag map from string input.
+
+    @param data: The data to parse and add to the in-memory map
+    @type data: str
+    @param overwrite: If True, wipe the existing tag list in memory, if any.
+                      If False, append to the existing tag list in memory.
+    @type overwrite: bool
+    @param fmt: The format to use to parse the input: json, text, or yaml
+    @type fmt: str: 'json', 'text', or 'yaml'
+    """
+    global THE_LIST
+
+    tag_map = parse(data, fmt)
+
+    if overwrite:
+        THE_LIST = {}
+
+    THE_LIST.update(tag_map)
+
+
 def load(input_file, overwrite=False, fmt=None):
     """
     Load a list of tags from a file.
@@ -379,41 +401,44 @@ def load(input_file, overwrite=False, fmt=None):
     @param overwrite: If True, wipe the existing tag list in memory, if any.
                       If False, append to the existing tag list in memory.
     @type overwrite: bool
-    @param fmt: The format to save the output in: json, text, or yaml
+    @param fmt: The format to use to parse the input: json, text, or yaml
     @type fmt: str: 'json', 'text', or 'yaml'
     @raise IOError: When input_file does not exist
     """
-    global THE_LIST
-
     if not os.path.exists(input_file):
         err = 'File "%s" not found!' % input_file
         logger.error(err)
         raise IOError(err)
-
-    if overwrite:
-        THE_LIST = {}
 
     f = open(input_file, 'r')
     data = f.read()
     f.close()
 
     fmt = fmt if fmt else getfmt(getext(input_file).lower())
-    data = parse(data, fmt)
-
-    THE_LIST.update(data)
+    init(data, overwrite, fmt)
 
 
-def remap():
+def remap(map_as=None):
     """
     Swap between tag-to-file memory-mapping, and tag-to-file memory mapping.
 
     This may be a very expensive operation depending on how many tags you have.
+
+    @param map_as: The mapping scheme to use, tag-to-file, or file-to-tag.
+                   If left at None, remap() will toggle between the two.
+    @type map_as: str: 'tag-->file' or 'file-->tag'
     """
     global MAPPING
     global THE_LIST
 
+    if map_as == MAPPING or map_as not in (TAG_TO_FILE, FILE_TO_TAG, None):
+        return
+
+    if map_as is None:
+        map_as = FILE_TO_TAG if MAPPING == TAG_TO_FILE else TAG_TO_FILE
+
     data = dump_text()
-    MAPPING = FILE_TO_TAG if MAPPING == TAG_TO_FILE else TAG_TO_FILE
+    MAPPING = map_as
     THE_LIST = parse_text(data)
 
 

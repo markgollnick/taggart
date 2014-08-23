@@ -8,7 +8,7 @@ install:
   - pip install coveralls
 
 # command to run tests
-script: nosetests
+script: ant test
 
 # command to upload coverage data to coveralls.io
 after_success:
