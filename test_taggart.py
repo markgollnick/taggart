@@ -73,46 +73,36 @@ class Taggart_FTT_BaseCase(BaseCase):
 
 
 class tag_TTF_TestCase(Taggart_TTF_BaseCase):
-    def test_tag_assert_exists(self):
+    def test_tag_internal_assert_exists(self):
         self.exists_mock.return_value = False
         self.assertRaises(
-            IOError, taggart.tag, 'new_file', 'New Tag', assert_exists=True)
+            IOError, taggart._tag, 'new_file', 'New Tag', assert_exists=True)
         self.exists_mock.assert_called_once_with('new_file')
 
-    def test_tag(self):
-        taggart.tag('new_file', 'New Tag')
-        taggart.tag('other_file', 'New Tag')
+    def test_tag_internal(self):
+        taggart._tag('new_file', 'New Tag')
+        taggart._tag('other_file', 'New Tag')
         self.assertEqual(
             ['new_file', 'other_file'], taggart.THE_LIST.get('New Tag'))
 
-
-class tag_FTT_TestCase(Taggart_FTT_BaseCase):
     def test_tag(self):
         taggart.tag('new_file', 'New Tag')
-        taggart.tag('new_file', 'Other Tag')
-        self.assertEqual(
-            ['New Tag', 'Other Tag'], taggart.THE_LIST.get('new_file'))
-
-
-class tags_TTF_TestCase(Taggart_TTF_BaseCase):
-    def test_tags_works_with_strings(self):
-        taggart.tags('new_file', 'New Tag')
         self.assertEqual(['new_file'], taggart.THE_LIST.get('New Tag'))
 
     @patch.object(taggart, 'logger')
-    def test_tags_warns_on_nonexistance(self, log_mock):
+    def test_tag_warns_on_nonexistance(self, log_mock):
         self.exists_mock.return_value = False
-        taggart.tags('new_file', 'New Tag', assert_exists=True)
+        taggart.tag('new_file', 'New Tag', assert_exists=True)
         self.exists_mock.assert_called_once_with('new_file')
         self.assertEqual(None, taggart.THE_LIST.get('New Tag'))
         self.assertEqual(1, log_mock.warn.call_count)
 
     @patch.object(taggart, 'logger')
-    def test_tags_called_with_many_files_and_tags(self, log_mock):
+    def test_tag_works_with_many_files_and_tags(self, log_mock):
         self.exists_mock.return_value = None
         # TODO: This needs to be optimized.
         self.exists_mock.side_effect = [True, False, True, True, False, True]
-        taggart.tags(['a', 'b', 'c'], ['A', 'B'], assert_exists=True)
+        taggart.tag(['a', 'b', 'c'], ['A', 'B'], assert_exists=True)
         self.assertEqual(6, self.exists_mock.call_count)
         self.exists_mock.assert_has_calls([
             call('a'), call('b'), call('c'),
@@ -123,41 +113,47 @@ class tags_TTF_TestCase(Taggart_TTF_BaseCase):
         self.assertEqual(2, log_mock.warn.call_count)
 
 
+class tag_FTT_TestCase(Taggart_FTT_BaseCase):
+    def test_tag(self):
+        taggart.tag('new_file', 'New Tag')
+        taggart.tag('new_file', 'Other Tag')
+        self.assertEqual(
+            ['New Tag', 'Other Tag'], taggart.THE_LIST.get('new_file'))
+
+
 class untag_TTF_TestCase(Taggart_TTF_BaseCase):
-    def test_untag_nonexistent_tag(self):
-        taggart.untag('new_file', 'New Tag')
+    def test_untag_internal_on_nonexistent_tag(self):
+        taggart._untag('new_file', 'New Tag')
         self.assertEqual(None, taggart.THE_LIST.get('New Tag'))
 
-    def test_untag_only_file_for_tag(self):
-        taggart.untag('file_1', 'Tag A')
+    def test_untag_internal_removes_file_when_file_is_only_file_for_tag(self):
+        taggart._untag('file_1', 'Tag A')
         self.assertEqual(None, taggart.THE_LIST.get('Tag A'))
         self.assertEqual(
             ['Tag B', 'Tag C', 'Tag D'], sorted(list(taggart.THE_LIST.keys())))
 
-
-class untag_FTT_TestCase(Taggart_FTT_BaseCase):
-    def test_untag_nonexistent_file(self):
-        taggart.untag('new_file', 'New Tag')
-        self.assertEqual(None, taggart.THE_LIST.get('new_file'))
-
-    def test_untag_only_tag_for_file(self):
-        taggart.untag('file_1', 'Tag A')
-        self.assertEqual(None, taggart.THE_LIST.get('file_1'))
-        self.assertEqual(
-            ['file_2', 'file_3'], sorted(list(taggart.THE_LIST.keys())))
-
-
-class untags_TTF_TestCase(Taggart_TTF_BaseCase):
-    def test_untags_works_with_strings(self):
-        taggart.untags('file_3', 'Tag C')
+    def test_untag(self):
+        taggart.untag('file_3', 'Tag C')
         self.assertEqual(['file_2'], taggart.THE_LIST.get('Tag C'))
 
-    def test_untags_called_with_many_files_and_tags(self):
-        taggart.untags(['file_1', 'file_2', 'file_3'], ['Tag B', 'Tag C'])
+    def test_untag_works_with_many_files_and_tags(self):
+        taggart.untag(['file_1', 'file_2', 'file_3'], ['Tag B', 'Tag C'])
         self.assertEqual({
             'Tag A': ['file_1'],
             'Tag D': ['file_3']
         }, taggart.THE_LIST)
+
+
+class untag_FTT_TestCase(Taggart_FTT_BaseCase):
+    def test_untag_internal_on_nonexistent_file(self):
+        taggart._untag('new_file', 'New Tag')
+        self.assertEqual(None, taggart.THE_LIST.get('new_file'))
+
+    def test_untag_internal_removes_tag_when_tag_is_only_tag_for_file(self):
+        taggart._untag('file_1', 'Tag A')
+        self.assertEqual(None, taggart.THE_LIST.get('file_1'))
+        self.assertEqual(
+            ['file_2', 'file_3'], sorted(list(taggart.THE_LIST.keys())))
 
 
 class dump_json_TTF_TestCase(Taggart_TTF_BaseCase):
