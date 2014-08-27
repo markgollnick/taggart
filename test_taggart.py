@@ -1,4 +1,5 @@
 import copy
+import os
 import sys
 from unittest import TestCase
 
@@ -178,13 +179,13 @@ class dump_json_FTT_TestCase(Taggart_FTT_BaseCase):
 class dump_text_BaseCase(BaseCase):
     def setUp(self):
         super(dump_text_BaseCase, self).setUp()
-        self.sorted_output = """Tag A<==>file_1
+        self.sorted_output = os.linesep.join("""Tag A<==>file_1
 Tag B<==>file_2
 Tag B<==>file_3
 Tag C<==>file_2
 Tag C<==>file_3
 Tag D<==>file_3
-"""
+""".split('\n'))
 
 
 class dump_text_TTF_TestCase(dump_text_BaseCase, Taggart_TTF_BaseCase):
@@ -195,20 +196,20 @@ class dump_text_TTF_TestCase(dump_text_BaseCase, Taggart_TTF_BaseCase):
 
 class dump_text_FTT_TestCase(dump_text_BaseCase, Taggart_FTT_BaseCase):
     def test_dump_text(self):
-        unsorted_output = """Tag A<==>file_1
+        unsorted_output = os.linesep.join("""Tag A<==>file_1
 Tag B<==>file_2
 Tag C<==>file_2
 Tag B<==>file_3
 Tag C<==>file_3
 Tag D<==>file_3
-"""
+""".split('\n'))
         self.assertEqual(unsorted_output, taggart.dump_text(sort=False))
         self.assertEqual(self.sorted_output, taggart.dump_text(sort=True))
 
 
 class dump_yaml_TTF_TestCase(Taggart_TTF_BaseCase):
     def test_dump_yaml(self):
-        expect = """Tag A:
+        expect = os.linesep.join("""Tag A:
 - file_1
 Tag B:
 - file_2
@@ -218,13 +219,13 @@ Tag C:
 - file_3
 Tag D:
 - file_3
-"""
+""".split('\n'))
         self.assertEqual(expect, taggart.dump_yaml())
 
 
 class dump_yaml_FTT_TestCase(Taggart_FTT_BaseCase):
     def test_dump_yaml(self):
-        expect = """file_1:
+        expect = os.linesep.join("""file_1:
 - Tag A
 file_2:
 - Tag B
@@ -233,7 +234,7 @@ file_3:
 - Tag B
 - Tag C
 - Tag D
-"""
+""".split('\n'))
         self.assertEqual(expect, taggart.dump_yaml())
 
 
@@ -272,29 +273,32 @@ class save_TestCase(BaseCase):
 class parse_json_TestCase(BaseCase):
     def test_parse_json(self):
         expect = {'New Tag': ['a_file'], 'Other Tag': ['a_file', 'b_file']}
-        input = '{"New Tag": ["a_file"], "Other Tag": ["a_file", "b_file"]}'
-        self.assertEqual(expect, taggart.parse_json(input))
+        jsstr = '{"New Tag": ["a_file"], "Other Tag": ["a_file", "b_file"]}'
+        self.assertEqual(expect, taggart.parse_json(jsstr))
 
 
 class parse_text_TTF_TestCase(Taggart_TTF_BaseCase):
     def test_parse_text(self):
         expect = {'New Tag': ['a_file'], 'Other Tag': ['a_file', 'b_file']}
-        input = 'New Tag<==>a_file\nOther Tag<==>a_file\nOther Tag<==>b_file'
-        self.assertEqual(expect, taggart.parse_text(input))
+        txt = 'New Tag<==>a_file\nOther Tag<==>a_file\nOther Tag<==>b_file'
+        txt = os.linesep.join(txt.split('\n'))
+        self.assertEqual(expect, taggart.parse_text(txt))
 
 
 class parse_text_FTT_TestCase(Taggart_FTT_BaseCase):
     def test_parse_text(self):
         expect = {'a_file': ['New Tag', 'Other Tag'], 'b_file': ['Other Tag']}
-        input = 'New Tag<==>a_file\nOther Tag<==>a_file\nOther Tag<==>b_file'
-        self.assertEqual(expect, taggart.parse_text(input))
+        txt = 'New Tag<==>a_file\nOther Tag<==>a_file\nOther Tag<==>b_file'
+        txt = os.linesep.join(txt.split('\n'))
+        self.assertEqual(expect, taggart.parse_text(txt))
 
 
 class parse_yaml_TestCase(BaseCase):
     def test_parse_yaml(self):
         expect = {'New Tag': ['a_file'], 'Other Tag': ['a_file', 'b_file']}
-        input = 'New Tag:\n-  a_file\nOther Tag:\n-  a_file\n-  b_file'
-        self.assertEqual(expect, taggart.parse_yaml(input))
+        txt = 'New Tag:\n-  a_file\nOther Tag:\n-  a_file\n-  b_file'
+        txt = os.linesep.join(txt.split('\n'))
+        self.assertEqual(expect, taggart.parse_yaml(txt))
 
 
 class parse_TestCase(BaseCase):
