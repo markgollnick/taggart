@@ -2,3 +2,5 @@ v1.0.0, 2014-06-06 -- Introducing Taggart: The simple file tagger.
 v1.1.0, 2014-08-16 -- Add multiple tagging support, additional output formats.
 v1.2.0, 2014-08-21 -- Add dump and parse functions; no need to use hard files.
 v1.3.0, 2014-08-23 -- Add init function for being able to load without a file.
+v1.3.1, 2014-08-26 -- Fix test passage on Windows.
+v1.4.0, 2014-08-27 -- Enable Python 3 support.
