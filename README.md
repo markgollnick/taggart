@@ -48,14 +48,14 @@ You can also load from a backup:
 
     >>> taggart.load('tags.txt')
 
-…but you don't have to write anything to disk at all, if you don't want to:
+…but you don’t have to write anything to disk at all, if you don’t want to:
 
 - `taggart.dump()` … `taggart.dump_json()` … `taggart.dump_yaml()`
 
-You also don't have to load anything form disk, either, if you already have the
+You also don’t have to load anything form disk, either, if you already have the
 data you need from somewhere else (represented as string `s`):
 
-- `taggart.init(s, fmt=...)`, where `fmt` is `'text'`, `'json'`, or `'yaml'`.
+- `taggart.init(s, fmt=…)`, where `fmt` is `'text'`, `'json'`, or `'yaml'`.
 
 That should cover the basics. Happy tagging!
 
@@ -92,7 +92,7 @@ file may occur multiple times in memory. Consider the following:
     >>> taggart.save('tags.yaml')
     >>> exit()
 
-    # cat tags.yaml
+    $ cat tags.yaml
     Memories:
     - vacation/photos
     - wedding
@@ -102,7 +102,7 @@ file may occur multiple times in memory. Consider the following:
 
 This may seem backwards, but actually, this is probably the ideal for most
 applications, as the general goal of tagging is to apply a tag to a file and
-use it to reference that file (and others) many times later on. In Taggart's
+use it to reference that file (and others) many times later on. In Taggart’s
 implementation of file-tagging, instead of “applying a tag to a file,” we
 actually apply the *file* to the *tag*, since referencing files by their tags
 is far easier and *much* faster than scanning through a huge list of files with
@@ -112,7 +112,7 @@ searching for.
 Consider, for a moment, Mac OS X, and its implementation of file-tagging. After
 tagging many files with a certain tag, say you want to change the tag’s color.
 Have you ever tried to change the colored dot of a tag that happens to be
-applied to many, many files? See how long it takes? That's because, as far as
+applied to many, many files? See how long it takes? That’s because, as far as
 Mac OS X is concerned, “files have tags”… and every single one of those tags,
 *plural,* now needs to be updated because you changed *one* of them.
 
@@ -122,8 +122,8 @@ than 1.0, we still have the added benefit of a faster query-by-tag speed, which
 is probably what most users will want. However, if your application intends to
 apply many tags to a potentially very small set of files, it may actually be
 better for you to do as Mac OS X does, and reference tags by their files (aka
-"file-to-tag mapping") rather than files by their tags (aka "tag-to-file
-mapping", which is the default setting). Taggart makes this transition easy:
+“file-to-tag mapping”) rather than files by their tags (aka “tag-to-file
+mapping”, which is the default setting). Taggart makes this transition easy:
 
     >>> import taggart
     >>> taggart.load('tags.yaml')
@@ -140,7 +140,7 @@ mapping", which is the default setting). Taggart makes this transition easy:
     - Photos
 
 Note that `taggart.remap()` may be a very slow operation, depending on how many
-files/tags Taggart needs to remap. You may check Taggart's current memory map
+files/tags Taggart needs to remap. You may check Taggart’s current memory map
 setting by checking the `taggart.MAPPING` value, and if you wish, you may even
 explicitly set it after loading Taggart, with the `taggart.TAG_TO_FILE` and/or
 the `taggart.FILE_TO_TAG` values. Also, when using the alternate mapping, note
@@ -154,7 +154,7 @@ loaded instance, as it will pollute the tag-map with files where there should
 be tags, and tags where there should be files.
 
 For more information on which of these two mapping styles you should use, see
-the documentation in `taggart.py`, or set taggart's logger to `INFO` while your
+the documentation in `taggart.py`, or set Taggart’s logger to `INFO` while your
 application is running, and see if you encounter any messages about slow
 computations. For most folks, the default setting of tag-to-file mapping is
 probably the ideal setting, and remapping shouldn’t be necessary, but the
@@ -168,7 +168,7 @@ Testing
 
 1.  Requirements:
 
-    - Python 2.7.x
+    - Python 2.7, 3.2, 3.3, or 3.4
     - Pip >= 1.4.1
     - virtualenv
     - virtualenvwrapper
@@ -180,7 +180,7 @@ Testing
         $ workon taggart
         $ ant test
 
-It's that simple.
+It’s that simple.
 
 [![WOMM Certified™](http://content.screencast.com/users/markgollnick/folders/Jing/media/19ea7b38-4a94-450c-9190-3e5115ebe1c4/womm.png)](http://blog.codinghorror.com/the-works-on-my-machine-certification-program/)
 
