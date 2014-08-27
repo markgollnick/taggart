@@ -1,45 +1,26 @@
 import copy
 import os
-import sys
 from unittest import TestCase
+
+try:
+    from importlib import reload  # Python>=3.4
+except ImportError:  # NOCOV
+    from imp import reload  # Python<3.4
+
+try:
+    import builtins  # Python>=3
+except ImportError:  # NOCOV
+    import __builtin__ as builtins  # Python<3
 
 from mock import call, patch
 
 import taggart
 
 
-class ImportErrorTestCase(TestCase):
-    def setUp(self):
-        self.addCleanup(patch.stopall)
-        self.real_import = __import__
-
-        def import_error(name, *args, **kwargs):
-            if name == 'yaml':
-                raise ImportError
-            return self.real_import(name, *args, **kwargs)
-
-        self.import_patch = patch(
-            target='__builtin__.__import__', new=import_error)
-
-        self.import_mock = self.import_patch.start()
-
-    def tearDown(self):
-        patch.stopall()
-        reload(taggart)
-
-    def test_yaml_import_errors_out_gracefully(self):
-        self.assertTrue(hasattr(taggart, 'yaml'))
-        del sys.modules['yaml']
-        del taggart.yaml
-        self.assertFalse(hasattr(taggart, 'yaml'))
-        reload(taggart)
-        self.assertFalse(hasattr(taggart, 'yaml'))
-
-
 class BaseCase(TestCase):
     def setUp(self):
         self.addCleanup(patch.stopall)
-        self.open_mock = patch('__builtin__.open').start()
+        self.open_mock = patch.object(builtins, 'open').start()
         self.file_mock = self.open_mock.return_value
         self.exists_mock = patch.object(taggart.os.path, 'exists').start()
 
@@ -426,7 +407,7 @@ class rename_tag_TTF_TestCase(Taggart_TTF_BaseCase):
             'Cool B': ['file_2', 'file_3'],
             'Tag C': ['file_2', 'file_3'],
             'Tag D': ['file_3']
-        }, taggart.THE_LIST)
+        }, {k: sorted(v) for k, v in taggart.THE_LIST.items()})
 
 
 class rename_tag_FTT_TestCase(Taggart_FTT_BaseCase):
@@ -434,9 +415,9 @@ class rename_tag_FTT_TestCase(Taggart_FTT_BaseCase):
         taggart.rename_tag('Tag B', 'Cool B')
         self.assertEqual({
             'file_1': ['Tag A'],
-            'file_2': ['Tag C', 'Cool B'],
-            'file_3': ['Tag D', 'Tag C', 'Cool B']
-        }, taggart.THE_LIST)
+            'file_2': ['Cool B', 'Tag C'],
+            'file_3': ['Cool B', 'Tag C', 'Tag D']
+        }, {k: sorted(v) for k, v in taggart.THE_LIST.items()})
 
 
 class rename_file_TTF_TestCase(Taggart_TTF_BaseCase):
@@ -447,7 +428,7 @@ class rename_file_TTF_TestCase(Taggart_TTF_BaseCase):
             'Tag B': ['2_cool', 'file_3'],
             'Tag C': ['2_cool', 'file_3'],
             'Tag D': ['file_3']
-        }, taggart.THE_LIST)
+        }, {k: sorted(v) for k, v in taggart.THE_LIST.items()})
 
 
 class rename_file_FTT_TestCase(Taggart_FTT_BaseCase):
@@ -463,7 +444,7 @@ class rename_file_FTT_TestCase(Taggart_FTT_BaseCase):
             'file_1': ['Tag A'],
             'file_3': ['Tag B', 'Tag C', 'Tag D'],
             '2_cool': ['Tag B', 'Tag C']
-        }, taggart.THE_LIST)
+        }, {k: sorted(v) for k, v in taggart.THE_LIST.items()})
 
 
 class get_files_by_tag_TTF_TestCase(Taggart_TTF_BaseCase):

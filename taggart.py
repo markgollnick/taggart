@@ -16,10 +16,25 @@ logger.setLevel(logging.WARNING if not DEBUG else logging.DEBUG)
 
 try:
     import yaml
-except ImportError as e:
+except ImportError as e:  # NOCOV
     logger.warn("PyYAML is not loaded. You will be able to save tag files in "
                 "YAML format, but you will not be able to load them.")
     pass
+
+try:
+    unicode = unicode
+except NameError:  # NOCOV
+    # 'unicode' is undefined, must be Python 3.x
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str, bytes)
+else:  # NOCOV
+    # 'unicode' exists, must be Python 2.x
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
 
 # Store the list of files and tags in memory
 THE_LIST = {}

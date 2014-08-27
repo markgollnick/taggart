@@ -14,7 +14,7 @@ Usage
 
 Easy installation:
 
-    $ pip install git+ssh://git@github.com/markgollnick/taggart@v1.3.0#egg=taggart-1.3.0
+    $ pip install git+ssh://git@github.com/markgollnick/taggart@v1.4.0#egg=taggart-1.4.0
 
 Simple interface:
 
